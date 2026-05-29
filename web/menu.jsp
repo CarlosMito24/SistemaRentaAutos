@@ -14,11 +14,14 @@
         font-size: 21px !important;
     }
 
-    .navbar-brand, nav-link {
+    .navbar-brand {
         color: white;
-        font-size: 20px;
         font-weight: bold;
         text-decoration: none;
+    }
+
+    .enlace {
+        color: #FFF !important;
     }
 
     .enlace:hover {
@@ -33,32 +36,27 @@
         background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba%28255, 255, 255, 0.5%29' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
     }
 
-    .user-info {
+    .usuario {
         color: white;
         display: flex;
         align-items: center;
-        gap: 15px;
     }
-    
+
     .btn-logout {
         background-color: #e74c3c;
         color: white;
         text-decoration: none;
         border-radius: 4px;
         font-weight: bold;
-        font-size: 14px;
         margin: 5px;
-        height: 25px;
-        width: 100px;
+        height: 35px;
         box-sizing: border-box;
-        
-        /* === CORRECCIÓN: CENTRADO PERFECTO CON FLEXBOX === */
-        display: inline-flex;       /* Activa el contenedor flexible sin romper el flujo del texto */
-        justify-content: center;    /* Centra el texto horizontalmente */
-        align-items: center;        /* Centra el texto verticalmente */
-        padding: 0;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0 10px;
     }
-    
+
     .btn-logout:hover {
         background-color: #c0392b;
     }
@@ -76,6 +74,7 @@
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
+
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav  ml-auto">
                 <li class="nav-item">
@@ -91,14 +90,13 @@
                     <a href="#" class="enlace nav-link">📊 Reportes del Día</a>
                 </li>
             </ul>
-        </div>
 
-        <div class="user-info">
-            <span>👤 <strong><%= empMenu.getNombreCompleto()%></strong></span>
-            <a href="LogoutServlet" class="btn-logout">Cerrar Sesión</a>
+            <ul class="navbar-nav  ml-auto">
+                <li class="nav-item usuario">
+                    <strong><%= empMenu.getNombreCompleto()%></strong><a href="LogoutServlet" class="btn-logout">Cerrar Sesión</a>
+                </li>
+            </ul>
         </div>
-
-        
     </nav> 
 </header>
 

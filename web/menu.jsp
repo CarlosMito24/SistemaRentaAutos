@@ -1,9 +1,3 @@
-<%-- 
-    Document   : menu
-    Created on : 26 may 2026, 19:38:28
-    Author     : carlo
---%>
-
 <%@page import="com.renta.modelos.Usuario"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%
@@ -17,93 +11,113 @@
 <style>
     .navbar {
         background-color: #2c3e50;
-        padding: 15px 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-radius: 5px;
-        margin-bottom: 20px;
-        flex-wrap: wrap; /* Permite que los elementos bajen si no caben */
+        font-size: 21px !important;
     }
-    .navbar-brand {
+
+    .navbar-brand, nav-link {
         color: white;
         font-size: 20px;
         font-weight: bold;
         text-decoration: none;
     }
-    .navbar-menu {
-        display: flex;
-        gap: 20px;
+
+    .enlace:hover {
+        color: orange !important;
     }
-    .navbar-item {
-        color: #ecf0f1;
-        text-decoration: none;
-        font-size: 16px;
-        padding: 5px 10px;
-        border-radius: 4px;
-        transition: background 0.3s;
+
+    .navbar-toggler {
+        border-color: rgba(255, 255, 255, 0.1);
     }
-    .navbar-item:hover {
-        background-color: #34495e;
-        color: #3498db;
+
+    .navbar-toggler-icon {
+        background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba%28255, 255, 255, 0.5%29' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
     }
+
     .user-info {
         color: white;
         display: flex;
         align-items: center;
         gap: 15px;
     }
+    
     .btn-logout {
         background-color: #e74c3c;
         color: white;
-        padding: 6px 12px;
         text-decoration: none;
         border-radius: 4px;
         font-weight: bold;
         font-size: 14px;
+        margin: 5px;
+        height: 25px;
+        width: 100px;
+        box-sizing: border-box;
+        
+        /* === CORRECCIÓN: CENTRADO PERFECTO CON FLEXBOX === */
+        display: inline-flex;       /* Activa el contenedor flexible sin romper el flujo del texto */
+        justify-content: center;    /* Centra el texto horizontalmente */
+        align-items: center;        /* Centra el texto verticalmente */
+        padding: 0;
     }
+    
     .btn-logout:hover {
         background-color: #c0392b;
     }
-
-    /* === RESPONSIVE: DISEÑO PARA MÓVILES Y TABLETAS === */
-    @media (max-width: 991px) {
-        .navbar {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 15px;
-        }
-        .navbar-menu {
-            flex-direction: column;
-            width: 100%;
-            gap: 10px;
-        }
-        .navbar-item {
-            display: block;
-            padding: 8px 10px;
-            background-color: #34495e;
-        }
-        .user-info {
-            width: 100%;
-            justify-content: space-between;
-            border-top: 1px solid #4f5d73;
-            padding-top: 10px;
-        }
-    }
 </style>
 
-<div class="navbar">
-    <a href="principal.jsp" class="navbar-brand">🚗 Renta Autos</a>
-    
-    <div class="navbar-menu">
-        <a href="clientes.jsp" class="navbar-item">👥 Clientes</a>
-        <a href="vehiculos.jsp" class="navbar-item">🚘 Vehículos</a>
-        <a href="#" class="navbar-item">🔑 Procesar Alquiler</a>
-        <a href="#" class="navbar-item">📊 Reportes del Día</a>
-    </div>
-    
-    <div class="user-info">
-        <span>👤 <strong><%= empMenu.getNombreCompleto() %></strong></span>
-        <a href="LogoutServlet" class="btn-logout">Cerrar Sesión</a>
-    </div>
-</div>
+<header>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+        <a href="principal.jsp" class="navbar-brand">🚗 Renta Autos</a>
+
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav  ml-auto">
+                <li class="nav-item">
+                    <a href="clientes.jsp" class="enlace nav-link">👥 Clientes</a>
+                </li>
+                <li class="nav-item">
+                    <a href="vehiculos.jsp" class="enlace nav-link">🚘 Vehículos</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="enlace nav-link">🔑 Procesar Alquiler</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="enlace nav-link">📊 Reportes del Día</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="user-info">
+            <span>👤 <strong><%= empMenu.getNombreCompleto()%></strong></span>
+            <a href="LogoutServlet" class="btn-logout">Cerrar Sesión</a>
+        </div>
+
+        
+    </nav> 
+</header>
+
+<script>
+    function toggleMenu() {
+        var menu = document.querySelector(".menu");
+        menu.classList.toggle("show");
+    }
+
+    document.addEventListener("click", function (event) {
+        var menu = document.querySelector(".menu");
+        var menuToggle = document.querySelector(".menu-toggle");
+
+        if (
+                !menu.contains(event.target) &&
+                !menuToggle.contains(event.target) &&
+                menu.classList.contains("show")
+                ) {
+            menu.classList.remove("show");
+        }
+    });
+</script>

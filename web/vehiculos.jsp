@@ -9,49 +9,85 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Control de Vehículos - Renta Autos</title>
         <style>
-            /* Contenedor flexible principal */
-            .container { display: flex; gap: 30px; margin-top: 20px; }
-            .form-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: 35%; height: max-content; }
-            .table-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: 65%; }
+            /* Estilos base */
+            body { font-family: Arial, sans-serif; padding: 15px; background-color: #f4f6f9; margin: 0; box-sizing: border-box; }
+            
+            /* Contenedor flexible principal (Escritorio: Lado a Lado) */
+            .container { display: flex; gap: 25px; margin-top: 20px; width: 100%; box-sizing: border-box; }
+            .form-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: 35%; height: max-content; box-sizing: border-box; }
+            .table-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: 65%; box-sizing: border-box; }
+            
+            h2 { color: #2c3e50; margin: 0 0 10px 0; font-size: 26px; }
+            h3 { margin-top: 0; color: #34495e; }
             
             .form-group { margin-bottom: 12px; }
             .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
-            .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 16px; } /* Ajuste de 16px para evitar zoom automático en iOS/Android */
+            .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 16px; } /* 16px evita zoom forzado en dispositivos móviles */
             
-            .btn-save { background-color: #2ecc71; color: white; border: none; padding: 12px; width: 100%; border-radius: 4px; font-size: 16px; cursor: pointer; font-weight: bold; }
+            .btn-save { background-color: #2ecc71; color: white; border: none; padding: 12px; width: 100%; border-radius: 4px; font-size: 16px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
             .btn-save:hover { background-color: #27ae60; }
             
-            /* Contenedor para hacer la tabla deslizable en celulares */
-            .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-            
-            table { width: 100%; border-collapse: collapse; margin-top: 15px; min-width: 500px; } /* min-width evita que las columnas se aplasten en pantallas diminutas */
+            /* Contenedor deslizante para proteger tablas en pantallas angostas */
+            .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 15px; }
+            table { width: 100%; border-collapse: collapse; min-width: 550px; } 
             table, th, td { border: 1px solid #ddd; }
-            th, td { padding: 10px; text-align: left; }
+            th, td { padding: 10px; text-align: left; font-size: 15px; }
             th { background-color: #34495e; color: white; }
             
             .badge-success { background-color: #2ecc71; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
             .badge-danger { background-color: #e74c3c; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-            .alert-inventario { background-color: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; margin-bottom: 15px; border: 1px solid #ffeeba; }
+            .alert-inventario { background-color: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; margin-bottom: 15px; border: 1px solid #ffeeba; font-size: 14px; }
 
-            /* === RESPONSIVE MODAL CON @MEDIA === */
+            /* =========================================================
+               === MEDIA QUERIES MULTIPANTALLA (VERTICAL Y HORIZONTAL) ===
+               ========================================================= */
+
+            /* 1. MÓVILES EN VERTICAL (Pantallas medianas y pequeñas) */
             @media (max-width: 991px) {
+                h2 { font-size: 22px; }
                 .container {
-                    flex-direction: column; /* Cambia de lado-a-lado a una sola columna vertical */
+                    flex-direction: column; /* Pasa de columnas a filas (Formulario arriba, tabla abajo) */
                     gap: 20px;
                 }
                 .form-box, .table-box {
-                    width: 100%; /* Ocupan todo el ancho de la pantalla del móvil */
-                    box-sizing: border-box;
+                    width: 100%; /* Ocupan todo el ancho de la pantalla */
                 }
+            }
+
+            @media (max-width: 480px) {
+                body { padding: 10px; }
+                h2 { font-size: 18px; }
+                .form-box, .table-box { padding: 15px; }
+            }
+
+            /* 2. MÓVILES EN HORIZONTAL (Giro de pantalla / Landscape) 
+               Si la pantalla es baja (alto menor a 550px), reorganizamos el espacio */
+            @media (max-height: 550px) and (orientation: landscape) {
+                h2 { font-size: 20px; }
+                .container {
+                    flex-direction: row; /* Volvemos a ponerlos lado a lado para aprovechar el ancho */
+                    gap: 15px;
+                }
+                .form-box { 
+                    width: 45%; /* El formulario toma una parte cómoda */
+                    padding: 15px;
+                }
+                .table-box { 
+                    width: 55%; /* La tabla toma el resto del espacio lateral */
+                    padding: 15px;
+                }
+                .form-group { margin-bottom: 8px; } /* Ajuste compacto para evitar exceso de scroll */
+                .form-group input { padding: 8px; font-size: 15px; }
+                .btn-save { padding: 10px; }
             }
         </style>
     </head>
-    <body style="font-family: Arial, sans-serif; padding: 15px; background-color: #f4f6f9; margin: 0;">
+    <body>
         
         <jsp:include page="menu.jsp" />
         
         <h2>🚗 Gestión del Inventario de Vehículos</h2>
-        <hr>
+        <hr style="border: 0; border-top: 1px solid #ddd; margin-bottom: 15px;">
         
         <div class="container">
             <div class="form-box">

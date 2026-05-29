@@ -20,39 +20,78 @@ public class VehiculoServlet extends HttpServlet {
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
-        // 1. Recibir los parámetros del formulario HTML de vehiculos.jsp
+
+        request.setCharacterEncoding("UTF-8");
+        String accion = request.getParameter("accion");
+        VehiculoDAO dao = new VehiculoDAO();
+
+        // =========================================================================
+        // 1. INTERCEPTAR ACCIÓN DE EDICIÓN (Viaja por enlace GET)
+        // =========================================================================
+        if (accion != null && accion.equals("editar")) {
+            try {
+                int id = Integer.parseInt(request.getParameter("id"));
+                Vehiculo v = dao.buscarVehiculoPorId(id);
+                // Enviamos el vehículo encontrado como un atributo a la vista
+                request.setAttribute("vehiculoEditar", v);
+            } catch (NumberFormatException e) {
+                System.out.println("Error al convertir ID en vehículo: " + e.getMessage());
+            }
+            // Usamos forward para mantener el atributo vivo en el JSP de vehículos
+            request.getRequestDispatcher("vehiculos.jsp").forward(request, response);
+            return;
+        }
+
+        // =========================================================================
+        // 2. LÓGICA PARA GUARDAR O ACTUALIZAR (Viaja por formulario POST)
+        // =========================================================================
+        // Recibir los parámetros del formulario HTML de vehiculos.jsp
+        String idStr = request.getParameter("txtId"); // Campo hidden indispensable
         String marca = request.getParameter("txtMarca");
         String modelo = request.getParameter("txtModelo");
         String placa = request.getParameter("txtPlaca");
         int capacidad = Integer.parseInt(request.getParameter("txtCapacidad"));
         double precio = Double.parseDouble(request.getParameter("txtPrecio"));
-        
-        // 2. REQUERIMIENTO 2: Validación de datos de entrada (Precios y cantidades no negativos)
+
+        // REQUERIMIENTO 2: Validación de datos de entrada (Precios y cantidades no negativos)
         if (capacidad <= 0 || precio <= 0.0) {
-            // Si hay datos inválidos, redirigimos con un mensaje de advertencia
             response.sendRedirect("vehiculos.jsp?error=Los valores de capacidad y precio deben ser mayores a cero.");
             return;
         }
-        
-        // 3. Crear el objeto Vehiculo siguiendo el paradigma POO
-        Vehiculo nuevoAuto = new Vehiculo();
-        nuevoAuto.setMarca(marca);
-        nuevoAuto.setModelo(modelo);
-        nuevoAuto.setPlaca(placa);
-        nuevoAuto.setCapacidad(capacidad);
-        nuevoAuto.setPrecioDiario(precio);
-        nuevoAuto.setDisponible(true); // Todo auto nuevo ingresa como listo/disponible
-        
-        // 4. Invocar la capa DAO para persistir en SQL Server
-        VehiculoDAO dao = new VehiculoDAO();
-        boolean exito = dao.registrarVehiculo(nuevoAuto);
-        
-        // 5. Redireccionar de vuelta a la interfaz para refrescar la tabla de inventario
-        if (exito) {
-            response.sendRedirect("vehiculos.jsp?msg=Vehiculo registrado exitosamente.");
+
+        // Crear y estructurar el objeto Vehiculo
+        Vehiculo auto = new Vehiculo();
+        auto.setMarca(marca);
+        auto.setModelo(modelo);
+        auto.setPlaca(placa);
+        auto.setCapacidad(capacidad);
+        auto.setPrecioDiario(precio);
+
+        // Al guardar o editar, determinamos su disponibilidad (por defecto true)
+        // Puedes cambiar esto si agregas un checkbox o select en el formulario
+        auto.setDisponible(true);
+
+        boolean exito;
+
+        // Evaluación del flujo: Si el ID está vacío es nuevo, de lo contrario se modifica
+        if (idStr == null || idStr.trim().isEmpty()) {
+            // REGISTRAR NUEVO
+            exito = dao.registrarVehiculo(auto);
         } else {
-            response.sendRedirect("vehiculos.jsp?error=No se pudo registrar el vehiculo. Verifique la placa.");
+            // ACTUALIZAR EXISTENTE
+            try {
+                auto.setIdVehiculo(Integer.parseInt(idStr.trim()));
+                exito = dao.actualizarVehiculo(auto);
+            } catch (NumberFormatException e) {
+                exito = false;
+            }
+        }
+
+        // Redireccionar de vuelta para actualizar la interfaz limpia
+        if (exito) {
+            response.sendRedirect("vehiculos.jsp?msg=Vehiculo procesado correctamente.");
+        } else {
+            response.sendRedirect("vehiculos.jsp?error=No se pudo guardar el vehiculo. Verifique que la placa no este duplicada.");
         }
     }
 

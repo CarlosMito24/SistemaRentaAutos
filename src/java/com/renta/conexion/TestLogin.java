@@ -12,14 +12,15 @@ import com.renta.datos.UsuarioDAO;
 import com.renta.modelos.Usuario;
 
 public class TestLogin {
+
     public static void main(String[] args) {
         System.out.println("=== INICIANDO PRUEBA DE CONEXIÓN Y LOGIN ===");
-        
+
         UsuarioDAO dao = new UsuarioDAO();
-        
+
         // Intentamos loguearnos con los datos de prueba insertados en SQL Server
-        Usuario u = dao.login("carlos.mito", "admin123");
-        
+        Usuario u = dao.login("admin", "admin123");
+
         if (u != null) {
             System.out.println("🎉 ¡ÉXITO TOTAL! El Login funciona perfectamente.");
             System.out.println("Empleado autenticado: " + u.getNombreCompleto() + " (ID: " + u.getIdUsuario() + ")");

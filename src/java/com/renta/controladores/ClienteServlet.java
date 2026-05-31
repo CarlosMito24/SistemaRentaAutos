@@ -8,67 +8,72 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/**
- *
- * @author carlo
- */
 public class ClienteServlet extends HttpServlet {
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         request.setCharacterEncoding("UTF-8");
         String accion = request.getParameter("accion");
         ClienteDAO dao = new ClienteDAO();
 
-        // Si la acción es editar, viaja por RequestDispatcher.forward
-        if (accion != null && accion.equals("editar")) {
+        // 1. ACCIÓN: ELIMINAR (DESACTIVAR)
+        if (accion != null && accion.equals("eliminar")) {
             try {
                 int id = Integer.parseInt(request.getParameter("id"));
-                Cliente cte = dao.buscarClientePorId(id);
-                request.setAttribute("clienteEditar", cte);
-            } catch (NumberFormatException e) {
-                System.out.println("Error en conversión de ID: " + e.getMessage());
+                if (dao.eliminarClienteLogico(id)) {
+                    response.sendRedirect("clientes.jsp?msg=Cliente desactivado correctamente.");
+                } else {
+                    response.sendRedirect("clientes.jsp?error=No se pudo desactivar el cliente.");
+                }
+            } catch (Exception e) {
+                response.sendRedirect("clientes.jsp?error=ID inválido.");
             }
-            request.getRequestDispatcher("clientes.jsp").forward(request, response);
             return;
         }
 
-        // LÓGICA DE GUARDAR (Igual a VehiculoServlet)
-        // 1. Recibir los parámetros desde clientes.jsp
+        // 2. ACCIÓN: GUARDAR / ACTUALIZAR
         String idStr = request.getParameter("txtId");
         String nombre = request.getParameter("txtNombre");
         String dui = request.getParameter("txtDui");
-        int edad = Integer.parseInt(request.getParameter("txtEdad"));
+        String edadStr = request.getParameter("txtEdad");
         String telefono = request.getParameter("txtTelefono");
 
-        // 2. Validación de regla de negocio
-        if (edad < 18) {
-            response.sendRedirect("clientes.jsp?error=Los valores de edad deben ser mayores o iguales a 18.");
+        // Validación básica
+        if (nombre == null || dui == null || edadStr == null || telefono == null) {
+            response.sendRedirect("clientes.jsp?error=Datos incompletos.");
             return;
         }
 
-        // 3. Crear el objeto con el paradigma POO
-        Cliente nuevoCliente = new Cliente();
-        nuevoCliente.setNombre(nombre);
-        nuevoCliente.setDui(dui);
-        nuevoCliente.setEdad(edad);
-        nuevoCliente.setTelefono(telefono);
-
-        // 4. Invocar la capa DAO
-        boolean exito;
-        if (idStr == null || idStr.trim().isEmpty()) {
-            exito = dao.registrarCliente(nuevoCliente);
-        } else {
-            nuevoCliente.setIdCliente(Integer.parseInt(idStr.trim()));
-            exito = dao.actualizarCliente(nuevoCliente);
+        int edad = Integer.parseInt(edadStr);
+        if (edad < 18) {
+            response.sendRedirect("clientes.jsp?error=El cliente debe ser mayor de 18 años.");
+            return;
         }
 
-        // 5. Redireccionar de vuelta a la vista (Refresca nativamente el inventario/tabla)
-        if (exito) {
-            response.sendRedirect("clientes.jsp?msg=Cliente registrado exitosamente.");
+        Cliente cliente = new Cliente();
+        cliente.setNombre(nombre);
+        cliente.setDui(dui);
+        cliente.setEdad(edad);
+        cliente.setTelefono(telefono);
+
+        boolean exito;
+        // Si no hay ID, es un registro nuevo
+        if (idStr == null || idStr.trim().isEmpty()) {
+            // FORZAMOS A TRUE PARA NUEVOS CLIENTES
+            cliente.setActivo(true);
+            exito = dao.registrarCliente(cliente);
         } else {
-            response.sendRedirect("clientes.jsp?error=No se pudo registrar el cliente. Verifique el DUI.");
+            // Es una actualización: se mantiene el estado que ya tenía o el que se decida
+            cliente.setIdCliente(Integer.parseInt(idStr.trim()));
+            cliente.setActivo(true); // Opcional: ajustar según si permites activar clientes desde el modal
+            exito = dao.actualizarCliente(cliente);
+        }
+
+        if (exito) {
+            response.sendRedirect("clientes.jsp?msg=Operación realizada con éxito.");
+        } else {
+            response.sendRedirect("clientes.jsp?error=Error al guardar en la base de datos.");
         }
     }
 

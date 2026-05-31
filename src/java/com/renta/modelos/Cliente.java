@@ -5,21 +5,34 @@ package com.renta.modelos;
  * @author carlo
  */
 public class Cliente {
+
     private int idCliente;
-    private String nombre; // Sincronizado con la columna 'nombre' de SQL Server
+    private String nombre;
     private String dui;
     private int edad;
     private String telefono;
+    private boolean activo; // Agregado para coincidir con la columna 'activo' (BIT)
 
     public Cliente() {
     }
 
-    public Cliente(int idCliente, String nombre, String dui, int edad, String telefono) {
+    // Actualizado el constructor para incluir 'activo'
+    public Cliente(int idCliente, String nombre, String dui, int edad, String telefono, boolean activo) {
         this.idCliente = idCliente;
         this.nombre = nombre;
         this.dui = dui;
         this.edad = edad;
         this.telefono = telefono;
+        this.activo = activo;
+    }
+
+    // Getters y Setters agregados
+    public boolean isActivo() {
+        return activo;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
     }
 
     public int getIdCliente() {

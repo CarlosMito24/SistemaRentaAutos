@@ -6,15 +6,15 @@
 <html lang="es">
     <head>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Control de Vehículos - Sistema Renta Autos</title>
         <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap4.min.css"/>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     </head>
     <body class="bg-light">
-
+        <jsp:include page="menu.jsp" />
         <div class="container-fluid p-3">
-            <jsp:include page="menu.jsp" />
+
 
             <%
                 VehiculoDAO dao = new VehiculoDAO();
@@ -27,32 +27,34 @@
                 + Nuevo Vehículo
             </button>
 
-            <table id="tablaVehiculos" class="table table-hover table-striped table-bordered">
-                <thead class="thead-dark">
-                    <tr>
-                        <th>ID</th><th>Marca</th><th>Modelo</th><th>Año</th><th>Color</th><th>Placa</th><th>Capacidad</th><th>Precio</th><th>Estado</th><th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% for (Vehiculo v : lista) {%>
-                    <tr>
-                        <td><%= v.getIdVehiculo()%></td>
-                        <td><%= v.getMarca()%></td>
-                        <td><%= v.getModelo()%></td>
-                        <td><%= v.getAnio()%></td>
-                        <td><%= v.getColor()%></td>
-                        <td><%= v.getPlaca()%></td>
-                        <td><%= v.getCapacidad()%> psj.</td>
-                        <td>$<%= String.format("%.2f", v.getPrecioDiario())%></td>
-                        <td><%= v.isDisponible() ? "<span class='badge badge-success'>Disponible</span>" : "<span class='badge badge-danger'>Alquilado</span>"%></td>
-                        <td>
-                            <button class="btn btn-sm btn-warning" onclick="editarVehiculo(this)">Editar</button>
-                            <button class="btn btn-sm btn-danger" onclick="confirmarEliminar(<%= v.getIdVehiculo()%>)">Eliminar</button>
-                        </td>
-                    </tr>
-                    <% }%>
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table id="tablaVehiculos" class="table table-hover table-striped table-bordered">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>ID</th><th>Marca</th><th>Modelo</th><th>Año</th><th>Color</th><th>Placa</th><th>Capacidad</th><th>Precio</th><th>Estado</th><th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% for (Vehiculo v : lista) {%>
+                        <tr>
+                            <td><%= v.getIdVehiculo()%></td>
+                            <td><%= v.getMarca()%></td>
+                            <td><%= v.getModelo()%></td>
+                            <td><%= v.getAnio()%></td>
+                            <td><%= v.getColor()%></td>
+                            <td><%= v.getPlaca()%></td>
+                            <td><%= v.getCapacidad()%> psj.</td>
+                            <td>$<%= String.format("%.2f", v.getPrecioDiario())%></td>
+                            <td><%= v.isDisponible() ? "<span class='badge badge-success'>Disponible</span>" : "<span class='badge badge-danger'>Alquilado</span>"%></td>
+                            <td>
+                                <button class="btn btn-sm btn-warning" onclick="editarVehiculo(this)">Editar</button>
+                                <button class="btn btn-sm btn-danger" onclick="confirmarEliminar(<%= v.getIdVehiculo()%>)">Eliminar</button>
+                            </td>
+                        </tr>
+                        <% }%>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <div class="modal fade" id="modalVehiculo" tabindex="-1" role="dialog" aria-hidden="true">
@@ -85,51 +87,59 @@
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
         <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
         <script src="https://cdn.datatables.net/1.10.24/js/dataTables.bootstrap4.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
         <script>
-                                $(document).ready(function () {
-                                    $('#tablaVehiculos').DataTable({"language": {"url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"}});
+                                    $(document).ready(function () {
+                                        // Inicializar tabla
+                                        $('#tablaVehiculos').DataTable({"language": {"url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"}});
 
-                                    const urlParams = new URLSearchParams(window.location.search);
-                                    if (urlParams.has('msg'))
-                                        Swal.fire('¡Éxito!', urlParams.get('msg'), 'success');
-                                    else if (urlParams.has('error'))
-                                        Swal.fire('¡Error!', urlParams.get('error'), 'error');
-                                });
+                                        // Cierre automático del menú
+                                        $('.navbar-nav>li>a').on('click', function () {
+                                            $('.navbar-collapse').collapse('hide');
+                                        });
 
-                                function limpiarFormulario() {
-                                    $('#txtId').val('');
-                                    $('#modalVehiculo form')[0].reset();
-                                }
-
-                                function editarVehiculo(btn) {
-                                    var fila = $(btn).closest('tr');
-                                    $('#txtId').val(fila.find('td:eq(0)').text());
-                                    $('#txtMarca').val(fila.find('td:eq(1)').text());
-                                    $('#txtModelo').val(fila.find('td:eq(2)').text());
-                                    $('#txtAnio').val(fila.find('td:eq(3)').text());
-                                    $('#txtColor').val(fila.find('td:eq(4)').text()); // Nuevo campo
-                                    $('#txtPlaca').val(fila.find('td:eq(5)').text());
-                                    $('#txtCapacidad').val(parseInt(fila.find('td:eq(6)').text()));
-                                    var precio = fila.find('td:eq(7)').text().replace('$', '');
-                                    $('#txtPrecio').val(precio);
-                                    $('#modalVehiculo').modal('show');
-                                }
-
-                                function confirmarEliminar(id) {
-                                    Swal.fire({
-                                        title: '¿Estás seguro?',
-                                        text: "Esta acción desactivará el vehículo.",
-                                        icon: 'warning',
-                                        showCancelButton: true,
-                                        confirmButtonColor: '#d33',
-                                        cancelButtonColor: '#3085d6',
-                                        confirmButtonText: 'Sí, desactivar'
-                                    }).then((result) => {
-                                        if (result.isConfirmed)
-                                            window.location.href = 'VehiculoServlet?accion=eliminar&id=' + id;
+                                        // SweetAlerts
+                                        const urlParams = new URLSearchParams(window.location.search);
+                                        if (urlParams.has('msg'))
+                                            Swal.fire('¡Éxito!', urlParams.get('msg'), 'success');
+                                        else if (urlParams.has('error'))
+                                            Swal.fire('¡Error!', urlParams.get('error'), 'error');
                                     });
-                                }
+
+                                    function limpiarFormulario() {
+                                        $('#txtId').val('');
+                                        $('#modalVehiculo form')[0].reset();
+                                    }
+
+                                    function editarVehiculo(btn) {
+                                        var fila = $(btn).closest('tr');
+                                        $('#txtId').val(fila.find('td:eq(0)').text());
+                                        $('#txtMarca').val(fila.find('td:eq(1)').text());
+                                        $('#txtModelo').val(fila.find('td:eq(2)').text());
+                                        $('#txtAnio').val(fila.find('td:eq(3)').text());
+                                        $('#txtColor').val(fila.find('td:eq(4)').text());
+                                        $('#txtPlaca').val(fila.find('td:eq(5)').text());
+                                        $('#txtCapacidad').val(parseInt(fila.find('td:eq(6)').text()));
+                                        var precio = fila.find('td:eq(7)').text().replace('$', '');
+                                        $('#txtPrecio').val(precio);
+                                        $('#modalVehiculo').modal('show');
+                                    }
+
+                                    function confirmarEliminar(id) {
+                                        Swal.fire({
+                                            title: '¿Estás seguro?',
+                                            text: "Esta acción desactivará el vehículo.",
+                                            icon: 'warning',
+                                            showCancelButton: true,
+                                            confirmButtonColor: '#d33',
+                                            cancelButtonColor: '#3085d6',
+                                            confirmButtonText: 'Sí, desactivar'
+                                        }).then((result) => {
+                                            if (result.isConfirmed)
+                                                window.location.href = 'VehiculoServlet?accion=eliminar&id=' + id;
+                                        });
+                                    }
         </script>
     </body>
 </html>

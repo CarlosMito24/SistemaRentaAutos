@@ -32,6 +32,30 @@ public class VehiculoDAO {
         return lista;
     }
 
+    public List<Vehiculo> listarVehiculosDisponibles() {
+        List<Vehiculo> lista = new ArrayList<>();
+        // Filtro clave: Solo vehículos activos y disponibles
+        String sql = "SELECT * FROM Vehiculos WHERE activo = 1 AND disponible = 1";
+
+        try (Connection cn = Conexion.conectar(); PreparedStatement pst = cn.prepareStatement(sql); ResultSet rs = pst.executeQuery()) {
+
+            while (rs.next()) {
+                Vehiculo v = new Vehiculo();
+                v.setIdVehiculo(rs.getInt("id_vehiculo"));
+                v.setMarca(rs.getString("marca"));
+                v.setModelo(rs.getString("modelo"));
+                v.setPlaca(rs.getString("placa"));
+                v.setPrecioDiario(rs.getDouble("precio_diario"));
+                v.setAnio(rs.getInt("anio"));
+                v.setColor(rs.getString("color"));
+                lista.add(v);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error al listar disponibles: " + e.getMessage());
+        }
+        return lista;
+    }
+
     public boolean registrarVehiculo(Vehiculo v) {
         // Incluimos anio y color
         String sql = "INSERT INTO Vehiculos (marca, modelo, placa, capacidad, precio_diario, disponible, activo, anio, color) VALUES (?,?,?,?,?,?,1,?,?)";

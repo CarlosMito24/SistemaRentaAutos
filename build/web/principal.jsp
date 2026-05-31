@@ -1,44 +1,46 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
-<html>
+<html lang="es">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Panel Principal - Renta Autos</title>
+
+        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
         <style>
-            /* Reset y estilos base del cuerpo */
-            body { 
-                font-family: Arial, sans-serif; 
-                padding: 20px; 
-                background-color: #f4f6f9; 
+            body {
+                font-family: Arial, sans-serif;
+                padding: 20px;
+                background-color: #f4f6f9;
                 margin: 0;
                 box-sizing: border-box;
                 min-height: 100vh;
             }
-            
+
             /* Tarjeta contenedora principal adaptativa */
-            .welcome-box { 
-                background: white; 
-                padding: 30px; 
-                border-radius: 8px; 
+            .welcome-box {
+                background: white;
+                padding: 30px;
+                border-radius: 8px;
                 box-shadow: 0 2px 4px rgba(0,0,0,0.05);
                 margin-top: 10px;
                 box-sizing: border-box;
                 transition: all 0.3s ease;
             }
-            
-            h2 { 
-                color: #2c3e50; 
-                margin-top: 0; 
+
+            h2 {
+                color: #2c3e50;
+                margin-top: 0;
                 font-size: 28px;
             }
-            
-            hr { 
-                border: 0; 
-                border-top: 1px solid #eee; 
-                margin: 20px 0; 
+
+            hr {
+                border: 0;
+                border-top: 1px solid #eee;
+                margin: 20px 0;
             }
-            
+
             p {
                 color: #555;
                 font-size: 16px;
@@ -97,14 +99,16 @@
         </style>
     </head>
     <body>
-        
+
         <jsp:include page="menu.jsp" />
-        
+
         <div class="welcome-box">
             <h2>Sistema de Información Gerencial de Alquiler de Vehículos</h2>
             <hr>
             <p>Selecciona una opción del menú superior para empezar a gestionar las operaciones del negocio.</p>
         </div>
-        
+
+        <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
     </body>
 </html>

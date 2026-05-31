@@ -16,6 +16,10 @@
         <servlet-name>ClienteServlet</servlet-name>
         <servlet-class>com.renta.controladores.ClienteServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>AlquilerServlet</servlet-name>
+        <servlet-class>com.renta.controladores.AlquilerServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>LoginServlet</servlet-name>
         <url-pattern>/LoginServlet</url-pattern>
@@ -31,6 +35,10 @@
     <servlet-mapping>
         <servlet-name>ClienteServlet</servlet-name>
         <url-pattern>/ClienteServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AlquilerServlet</servlet-name>
+        <url-pattern>/AlquilerServlet</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

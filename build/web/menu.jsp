@@ -63,11 +63,7 @@
 </style>
 
 <header>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <nav class="navbar navbar-expand-lg navbar-dark">
-        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
         <a href="principal.jsp" class="navbar-brand">🚗 Renta Autos</a>
 
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
@@ -84,7 +80,7 @@
                     <a href="vehiculos.jsp" class="enlace nav-link">🚘 Vehículos</a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="enlace nav-link">🔑 Procesar Alquiler</a>
+                    <a href="alquileres.jsp" class="enlace nav-link">🔑 Procesar Alquiler</a>
                 </li>
                 <li class="nav-item">
                     <a href="#" class="enlace nav-link">📊 Reportes del Día</a>
@@ -100,22 +96,3 @@
     </nav> 
 </header>
 
-<script>
-    function toggleMenu() {
-        var menu = document.querySelector(".menu");
-        menu.classList.toggle("show");
-    }
-
-    document.addEventListener("click", function (event) {
-        var menu = document.querySelector(".menu");
-        var menuToggle = document.querySelector(".menu-toggle");
-
-        if (
-                !menu.contains(event.target) &&
-                !menuToggle.contains(event.target) &&
-                menu.classList.contains("show")
-                ) {
-            menu.classList.remove("show");
-        }
-    });
-</script>

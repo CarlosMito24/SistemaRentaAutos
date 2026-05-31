@@ -17,7 +17,7 @@ public class Conexion {
     // Configuración de los parámetros de red y acceso
     private static final String DRIVER = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
     // REEMPLAZA TU_IP_DEL_SERVER por la IP real de tu Windows Server
-    private static final String URL = "jdbc:sqlserver://192.168.1.100:1433;databaseName=RentaAutos;encrypt=false;trustServerCertificate=true;";
+    private static final String URL = "jdbc:sqlserver://localhost:1433;databaseName=RentaAutos;encrypt=false;trustServerCertificate=true;";
     private static final String USER = "UsuarioRentaAutos";
     private static final String PASS = "Proyecto2026*";
     

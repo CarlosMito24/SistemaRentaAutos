@@ -17,7 +17,7 @@
         <jsp:include page="menu.jsp" />
 
         <div class="container-fluid p-3">
-            <h1 class="text-center my-4">Gestión de Clientes</h1>
+            <h1 class="text-center my-4">Gesti&oacuten de Clientes</h1>
 
             <button type="button" class="btn btn-primary mb-3" data-toggle="modal" data-target="#modalCliente" onclick="limpiarFormulario()">
                 + Nuevo Cliente

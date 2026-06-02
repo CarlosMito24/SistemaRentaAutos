@@ -8,7 +8,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -21,17 +20,26 @@ public class AlquilerServlet extends HttpServlet {
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        // Configuramos el formato para que atrape tanto la fecha como la hora
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 
         try {
-            // 1. Captura de parámetros
+            // 1. Captura de parámetros numéricos
             int idCliente = Integer.parseInt(request.getParameter("txtIdCliente"));
             int idVehiculo = Integer.parseInt(request.getParameter("txtIdVehiculo"));
             double totalInput = Double.parseDouble(request.getParameter("txtTotal"));
-            Date fechaInicio = sdf.parse(request.getParameter("txtFechaInicio"));
-            Date fechaDevolucion = sdf.parse(request.getParameter("txtFechaFin"));
 
-            // 2. Obtener sesión de usuario
+            // 2. Captura de los 4 campos de tiempo desde el JSP
+            String fechaI = request.getParameter("txtFechaInicio");
+            String horaI = request.getParameter("txtHoraInicio");
+            String fechaF = request.getParameter("txtFechaFin");
+            String horaF = request.getParameter("txtHoraFin");
+
+            // Unimos fecha y hora con un espacio en blanco para parsearlos juntos
+            Date fechaInicio = sdf.parse(fechaI + " " + horaI);
+            Date fechaDevolucion = sdf.parse(fechaF + " " + horaF);
+
+            // 3. Obtener sesión de usuario
             HttpSession session = request.getSession(false);
             if (session == null || session.getAttribute("empleado") == null) {
                 response.sendRedirect("login.jsp?error=Sesión expirada.");
@@ -41,7 +49,7 @@ public class AlquilerServlet extends HttpServlet {
             Usuario u = (Usuario) session.getAttribute("empleado");
             int idUsuario = u.getIdUsuario();
 
-            // 3. Crear objeto Alquiler
+            // 4. Crear y llenar objeto Alquiler
             Alquiler alquiler = new Alquiler();
             alquiler.setIdCliente(idCliente);
             alquiler.setIdVehiculo(idVehiculo);
@@ -49,13 +57,13 @@ public class AlquilerServlet extends HttpServlet {
             alquiler.setFechaDevolucionEsperada(fechaDevolucion);
             alquiler.setIdUsuario(idUsuario);
 
-            // CORRECCIÓN: Asignar todos los campos financieros requeridos por el DAO
-            alquiler.setPrecioAplicado(totalInput); // <--- ESTO ES LO QUE FALTABA
+            // Campos financieros calculados en el Frontend
+            alquiler.setPrecioAplicado(totalInput); 
             alquiler.setSubtotal(totalInput);
             alquiler.setTotalPago(totalInput);
             alquiler.setMora(0.0);
 
-            // 4. Procesar mediante el DAO
+            // 5. Procesar mediante el DAO
             AlquilerDAO dao = new AlquilerDAO();
             if (dao.registrarAlquiler(alquiler)) {
                 response.sendRedirect("alquileres.jsp?msg=Alquiler registrado correctamente.");

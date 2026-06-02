@@ -1,2 +1,4 @@
-/build/
-/dist/
+# Archivos privados de NetBeans
+nbproject/private/
+private.properties
+private.xml

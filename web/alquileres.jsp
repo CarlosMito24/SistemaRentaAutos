@@ -244,7 +244,7 @@
                         }
 
                         if (horaI === "" || horaF === "") {
-                            Swal.fire('Error', 'Debe especificar las horas exactas de entrega y devolución.', 'error');
+                            Swal.fire('Error', 'Debe especificar las horas exactas de entrega y devolucion.', 'error');
                             return false; 
                         }
 

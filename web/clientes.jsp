@@ -17,7 +17,7 @@
         <jsp:include page="menu.jsp" />
 
         <div class="container-fluid p-3">
-            <h1 class="text-center my-4">Gesti&oacuten de Clientes</h1>
+            <h1 class="text-center my-4">Gesti&#243;n de Clientes</h1>
 
             <button type="button" class="btn btn-primary mb-3" data-toggle="modal" data-target="#modalCliente" onclick="limpiarFormulario()">
                 + Nuevo Cliente
@@ -27,7 +27,7 @@
                 <table id="tablaClientes" class="table table-hover table-striped table-bordered">
                     <thead class="thead-dark">
                         <tr>
-                            <th>ID</th><th>Nombre</th><th>DUI</th><th>Edad</th><th>Teléfono</th><th>Acciones</th>
+                            <th>ID</th><th>Nombre</th><th>DUI</th><th>Edad</th><th>Tel&#233;fono</th><th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -62,10 +62,10 @@
                         </div>
                         <div class="modal-body">
                             <input type="hidden" name="txtId" id="txtId">
-                            <div class="form-group"><label>Nombre:</label><input type="text" name="txtNombre" id="txtNombre" class="form-control" required></div>
-                            <div class="form-group"><label>DUI:</label><input type="text" name="txtDui" id="txtDui" class="form-control" required></div>
-                            <div class="form-group"><label>Edad:</label><input type="number" name="txtEdad" id="txtEdad" class="form-control" required></div>
-                            <div class="form-group"><label>Teléfono:</label><input type="text" name="txtTelefono" id="txtTelefono" class="form-control" required></div>
+                            <div class="form-group"><label>Nombre:</label><input type="text" name="txtNombre" id="txtNombre" class="form-control" placeholder="Ingrese nombre completo" required></div>
+                            <div class="form-group"><label>DUI:</label><input type="text" name="txtDui" id="txtDui" class="form-control" placeholder="00000000-0" required></div>
+                            <div class="form-group"><label>Edad:</label><input type="number" name="txtEdad" id="txtEdad" class="form-control" placeholder="Ingrese edad" required></div>
+                            <div class="form-group"><label>Tel&#233;fono:</label><input type="text" name="txtTelefono" id="txtTelefono" class="form-control" placeholder="0000-0000" required></div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
@@ -87,17 +87,17 @@
                                         // Inicializar DataTables
                                         $('#tablaClientes').DataTable({"language": {"url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"}});
 
-                                        // Cierre automático del menú en móviles
+                                        // Cierre autom&#225;tico del men&#250; en m&#243;viles
                                         $('.navbar-nav>li>a').on('click', function () {
                                             $('.navbar-collapse').collapse('hide');
                                         });
 
-                                        // Lógica de Alertas (SweetAlert)
+                                        // L&#243;gica de Alertas (SweetAlert)
                                         const urlParams = new URLSearchParams(window.location.search);
                                         if (urlParams.has('msg')) {
-                                            Swal.fire('¡Éxito!', urlParams.get('msg'), 'success');
+                                            Swal.fire('&#161;&#201;xito!', urlParams.get('msg'), 'success');
                                         } else if (urlParams.has('error')) {
-                                            Swal.fire('¡Error!', urlParams.get('error'), 'error');
+                                            Swal.fire('&#161;Error!', urlParams.get('error'), 'error');
                                         }
                                     });
 
@@ -118,13 +118,13 @@
 
                                     function confirmarEliminar(id) {
                                         Swal.fire({
-                                            title: '¿Estás seguro?',
-                                            text: "Esta acción desactivará al cliente.",
+                                            title: '&#191;Est&#225;s seguro?',
+                                            text: "Esta acci&#243;n desactivar&#225; al cliente.",
                                             icon: 'warning',
                                             showCancelButton: true,
                                             confirmButtonColor: '#d33',
                                             cancelButtonColor: '#3085d6',
-                                            confirmButtonText: 'Sí, eliminar'
+                                            confirmButtonText: 'S&#237;, eliminar'
                                         }).then((result) => {
                                             if (result.isConfirmed)
                                                 window.location.href = 'ClienteServlet?accion=eliminar&id=' + id;

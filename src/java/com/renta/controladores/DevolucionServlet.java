@@ -37,8 +37,8 @@ public class DevolucionServlet extends HttpServlet {
             // 3. Ejecutar la actualización en la base de datos Maestro-Detalle
             AlquilerDAO dao = new AlquilerDAO();
             if (dao.registrarDevolucion(idDetalle, fechaRealSql, mora, totalFinal)) {
-                // Redirigir con mensaje de éxito
-                response.sendRedirect("alquileres.jsp?msg=Devolucion procesada.");
+                // Redirigir mandando un parámetro especial para imprimir la devolución
+                response.sendRedirect("alquileres.jsp?msg=Devolucion procesada correctamente.&downloadDevolucionId=" + idDetalle);
             } else {
                 response.sendRedirect("alquileres.jsp?error=Error interno al actualizar la base de datos.");
             }

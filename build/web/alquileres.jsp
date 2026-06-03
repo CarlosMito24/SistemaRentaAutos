@@ -9,7 +9,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registrar Alquiler</title>
+    <title>Registrar Alquiler - Proyecto de POO</title>
 
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -127,19 +127,19 @@
 
                             <div class="row">
                                 <div class="col-md-4 offset-md-8 form-group">
-                                    <label class="font-weight-bold">Total Estimado($):</label>
+                                    <label class="font-weight-bold">Total Estimado Línea ($):</label>
                                     <input type="number" step="0.01" id="txtTotal" class="form-control input-readonly" readonly>
                                 </div>
                             </div>
 
                             <div class="text-right mt-3">
                                 <button type="button" class="btn btn-primary btn-modern" onclick="agregarAlCarrito()">
-                                    <i class="fas fa-plus-circle"></i> Añadir
+                                    <i class="fas fa-plus-circle"></i> Añadir 
                                 </button>
                             </div>
 
                             <hr class="my-4">
-                            <h5 class="text-secondary"><i class="fas fa-shopping-cart"></i> Resumen del Alquiler</h5>
+                            <h5 class="text-secondary"><i class="fas fa-shopping-cart"></i> Resumen del alquiler actual</h5>
                             <div class="table-responsive">
                                 <table class="table table-sm table-bordered table-custom text-center mt-2">
                                     <thead class="bg-light">
@@ -155,7 +155,7 @@
                                     </tbody>
                                     <tfoot>
                                         <tr>
-                                            <th colspan="3" class="text-right text-success" style="font-size: 1.2rem;">TOTAL FINAL :</th>
+                                            <th colspan="3" class="text-right text-success" style="font-size: 1.2rem;">Total final:</th>
                                             <th class="text-success font-weight-bold" style="font-size: 1.2rem;">$<span id="lblGranTotal">0.00</span></th>
                                             <th></th>
                                         </tr>
@@ -216,7 +216,7 @@
                                     <td><span class="badge badge-warning"><%= p.get("fecha_esperada") %></span></td>
                                     <td class="text-success font-weight-bold">$<%= String.format("%.2f", p.get("total_linea")) %></td>
                                     <td>
-                                        <button class="btn btn-sm btn-warning btn-modern text-dark" onclick="procesarDevolucion(<%= p.get("id_detalle") %>, '<%= p.get("fecha_esperada_raw") %>', <%= p.get("total_linea") %>)">
+                                        <button class="btn btn-sm btn-warning btn-modern text-dark" onclick="procesarDevolucion(<%= p.get("id_detalle") %>, '<%= p.get("fecha_entrega_raw") %>', '<%= p.get("fecha_esperada_raw") %>', <%= p.get("total_linea") %>)">
                                             <i class="fas fa-undo-alt"></i> Devolución
                                         </button>
                                     </td>
@@ -256,9 +256,11 @@
                         </div>
 
                         <hr>
+                        <input type="hidden" id="modalTotalFinal" name="totalFinal">
+                        
                         <div class="row">
                             <div class="col-md-6 form-group">
-                                <label class="font-weight-bold text-muted">Subtotal Base ($):</label>
+                                <label class="font-weight-bold text-muted">Subtotal (Ya Cancelado):</label>
                                 <input type="number" class="form-control input-readonly" id="modalSubtotal" readonly>
                             </div>
                             <div class="col-md-6 form-group">
@@ -268,8 +270,8 @@
                         </div>
 
                         <div class="form-group mb-0">
-                            <label class="font-weight-bold text-success" style="font-size: 1.2rem;">Total a Cobrar ($):</label>
-                            <input type="number" step="0.01" class="form-control text-success font-weight-bold input-readonly" style="font-size: 1.5rem;" id="modalTotalFinal" name="totalFinal" readonly>
+                            <label class="font-weight-bold text-success" style="font-size: 1.2rem;">A Cobrar HOY ($):</label>
+                            <input type="number" step="0.01" class="form-control text-success font-weight-bold input-readonly" style="font-size: 1.5rem;" id="modalCobrarHoy" readonly>
                         </div>
                     </div>
                     <div class="modal-footer bg-light">
@@ -301,8 +303,13 @@
 
         window.onload = function() {
             const downloadId = urlParams.get('downloadId');
+            const downloadDevolucionId = urlParams.get('downloadDevolucionId');
+            
             if (downloadId) {
                 window.open('ComprobanteServlet?id=' + downloadId, '_blank');
+            } else if (downloadDevolucionId) {
+                // Abre el nuevo comprobante de devolución
+                window.open('ComprobanteDevolucionServlet?id=' + downloadDevolucionId, '_blank');
             }
         };
 
@@ -432,16 +439,26 @@
             return true;
         }
 
-        function procesarDevolucion(idDetalle, fechaEsperadaRaw, subtotal) {
+        function procesarDevolucion(idDetalle, fechaEntregaRaw, fechaEsperadaRaw, subtotal) {
             document.getElementById('modalIdDetalle').value = idDetalle;
             document.getElementById('modalSubtotal').value = subtotal;
             document.getElementById('modalFechaEsperada').value = fechaEsperadaRaw;
 
+            // 1. Bloqueamos para que NO se pueda elegir una fecha menor a la ACORDADA
+            document.getElementById('modalFechaReal').setAttribute('min', fechaEsperadaRaw);
+
+            // 2. Extraemos la hora exacta del sistema
             const ahora = new Date();
             ahora.setMinutes(ahora.getMinutes() - ahora.getTimezoneOffset());
             const fechaActualRaw = ahora.toISOString().slice(0,16); 
             
-            document.getElementById('modalFechaReal').value = fechaActualRaw;
+            // 3. Lógica de protección: Si la hora actual es antes de la fecha acordada,
+            // forzamos al input a empezar desde la fecha acordada para evitar errores.
+            if (fechaActualRaw < fechaEsperadaRaw) {
+                document.getElementById('modalFechaReal').value = fechaEsperadaRaw;
+            } else {
+                document.getElementById('modalFechaReal').value = fechaActualRaw;
+            }
 
             calcularMoraModal();
             $('#modalDevolucion').modal('show');
@@ -465,10 +482,11 @@
                 mora = horasTarde * 6.25;
             }
 
-            const totalFinal = subtotal + mora;
+            const totalFinalDB = subtotal + mora; 
 
             document.getElementById('modalMora').value = mora.toFixed(2);
-            document.getElementById('modalTotalFinal').value = totalFinal.toFixed(2);
+            document.getElementById('modalCobrarHoy').value = mora.toFixed(2); 
+            document.getElementById('modalTotalFinal').value = totalFinalDB.toFixed(2); 
         }
     </script>
 </body>

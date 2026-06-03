@@ -112,9 +112,13 @@ public class AlquilerDAO {
                 // Formato ISO estricto para inyectarlo en el <input type="datetime-local"> del futuro Modal
                 java.text.SimpleDateFormat sdfInput = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
                 fila.put("fecha_esperada_raw", sdfInput.format(rs.getTimestamp("fecha_devolucion_esperada")));
-
+                
+                fila.put("fecha_entrega_raw", sdfInput.format(rs.getTimestamp("fecha_entrega")));
+                
                 fila.put("total_linea", rs.getDouble("total_linea"));
                 lista.add(fila);
+                
+                
             }
         } catch (SQLException e) {
             System.err.println("Error al listar pendientes: " + e.getMessage());

@@ -1,5 +1,13 @@
-# Archivos privados de NetBeans
+# Archivos de NetBeans
 nbproject/private/
 private.properties
 private.xml
 build/
+dist/
+nbbuild/
+nbdist/
+.nb-gradle/
+# Otros comunes
+*.class
+*.jar
+*.war

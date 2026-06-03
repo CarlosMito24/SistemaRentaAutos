@@ -1,2 +1,12 @@
-/build/
-/dist/
+# Archivos de NetBeans
+nbproject/private/
+build/
+dist/
+nbbuild/
+nbdist/
+.nb-gradle/
+
+# Otros comunes
+*.class
+*.jar
+*.war

@@ -14,19 +14,20 @@ public class ReporteDAO {
         Connection con = Conexion.conectar();
 
         String sql = "SELECT "
-                + "COUNT(*) AS total_alquileres, "
-                + "COALESCE(SUM(subtotal), 0) AS total_subtotal, "
-                + "COALESCE(SUM(mora), 0) AS total_mora, "
-                + "COALESCE(SUM(total_pago), 0) AS total_ingresos "
-                + "FROM dbo.Alquileres "
-                + "WHERE CAST(fecha_alquiler AS DATE) = ?";
+                + "COUNT(DISTINCT t.id_ticket)       AS total_tickets, "
+                + "COALESCE(SUM(d.subtotal), 0)      AS total_subtotal, "
+                + "COALESCE(SUM(d.mora), 0)          AS total_mora, "
+                + "COALESCE(SUM(d.total_linea), 0)   AS total_ingresos "
+                + "FROM Ticket_Alquiler t "
+                + "INNER JOIN Detalle_Alquiler d ON t.id_ticket = d.id_ticket "
+                + "WHERE CAST(t.fecha_emision AS DATE) = ?";
 
         PreparedStatement ps = con.prepareStatement(sql);
         ps.setString(1, fecha);
         ResultSet rs = ps.executeQuery();
 
         if (rs.next()) {
-            reporte.setTotalAlquileres(rs.getInt("total_alquileres"));
+            reporte.setTotalAlquileres(rs.getInt("total_tickets"));
             reporte.setTotalSubtotal(rs.getDouble("total_subtotal"));
             reporte.setTotalMora(rs.getDouble("total_mora"));
             reporte.setTotalIngresos(rs.getDouble("total_ingresos"));
@@ -36,29 +37,31 @@ public class ReporteDAO {
         return reporte;
     }
 
-    // Detalle de alquileres del día
+    // Detalle de alquileres del día (un registro por vehículo/detalle)
     public List<Object[]> obtenerDetalleAlquileresDia(String fecha) throws Exception {
         List<Object[]> lista = new ArrayList<>();
         Connection con = Conexion.conectar();
 
         String sql = "SELECT "
-                + "a.id_alquiler, "
-                + "c.nombre AS cliente, "
+                + "t.id_ticket, "
+                + "c.nombre                          AS cliente, "
                 + "c.dui, "
-                + "v.marca + ' ' + v.modelo AS vehiculo, "
+                + "v.marca + ' ' + v.modelo          AS vehiculo, "
                 + "v.placa, "
-                + "a.fecha_alquiler, "
-                + "a.fecha_devolucion_esperada, "
-                + "a.fecha_devolucion_real, "
-                + "a.precio_aplicado, "
-                + "a.subtotal, "
-                + "a.mora, "
-                + "a.total_pago "
-                + "FROM dbo.Alquileres a "
-                + "INNER JOIN dbo.Clientes c ON a.id_cliente = c.id_cliente "
-                + "INNER JOIN dbo.Vehiculos v ON a.id_vehiculo = v.id_vehiculo "
-                + "WHERE CAST(a.fecha_alquiler AS DATE) = ? "
-                + "ORDER BY a.id_alquiler DESC";
+                + "t.fecha_emision, "
+                + "d.fecha_entrega, "
+                + "d.fecha_devolucion_esperada, "
+                + "d.fecha_devolucion_real, "
+                + "d.precio_aplicado, "
+                + "d.subtotal, "
+                + "d.mora, "
+                + "d.total_linea "
+                + "FROM Ticket_Alquiler t "
+                + "INNER JOIN Clientes c    ON t.id_cliente  = c.id_cliente "
+                + "INNER JOIN Detalle_Alquiler d ON t.id_ticket = d.id_ticket "
+                + "INNER JOIN Vehiculos v   ON d.id_vehiculo = v.id_vehiculo "
+                + "WHERE CAST(t.fecha_emision AS DATE) = ? "
+                + "ORDER BY t.id_ticket DESC, d.id_detalle ASC";
 
         PreparedStatement ps = con.prepareStatement(sql);
         ps.setString(1, fecha);
@@ -66,18 +69,19 @@ public class ReporteDAO {
 
         while (rs.next()) {
             Object[] fila = {
-                rs.getInt("id_alquiler"),
-                rs.getString("cliente"),
-                rs.getString("dui"),
-                rs.getString("vehiculo"),
-                rs.getString("placa"),
-                rs.getTimestamp("fecha_alquiler"),
-                rs.getDate("fecha_devolucion_esperada"),
-                rs.getDate("fecha_devolucion_real"),
-                rs.getDouble("precio_aplicado"),
-                rs.getDouble("subtotal"),
-                rs.getDouble("mora"),
-                rs.getDouble("total_pago")
+                rs.getInt("id_ticket"),           // 0
+                rs.getString("cliente"),           // 1
+                rs.getString("dui"),               // 2
+                rs.getString("vehiculo"),          // 3
+                rs.getString("placa"),             // 4
+                rs.getTimestamp("fecha_emision"),  // 5
+                rs.getTimestamp("fecha_entrega"),  // 6
+                rs.getDate("fecha_devolucion_esperada"), // 7
+                rs.getDate("fecha_devolucion_real"),     // 8
+                rs.getDouble("precio_aplicado"),   // 9
+                rs.getDouble("subtotal"),          // 10
+                rs.getDouble("mora"),              // 11
+                rs.getDouble("total_linea")        // 12
             };
             lista.add(fila);
         }
@@ -86,7 +90,7 @@ public class ReporteDAO {
         return lista;
     }
 
-    // Vehículos más alquilados en el día
+    // Vehículos activos (sin devolución real aún)
     public List<Object[]> obtenerVehiculosMasAlquilados(String fecha) throws Exception {
         List<Object[]> lista = new ArrayList<>();
         Connection con = Conexion.conectar();
@@ -94,13 +98,15 @@ public class ReporteDAO {
         String sql = "SELECT "
                 + "v.marca + ' ' + v.modelo AS vehiculo, "
                 + "v.placa, "
-                + "COUNT(*) AS veces_alquilado, "
-                + "SUM(a.total_pago) AS ingresos "
-                + "FROM dbo.Alquileres a "
-                + "INNER JOIN dbo.Vehiculos v ON a.id_vehiculo = v.id_vehiculo "
-                + "WHERE CAST(a.fecha_alquiler AS DATE) = ? "
-                + "GROUP BY v.marca, v.modelo, v.placa "
-                + "ORDER BY veces_alquilado DESC";
+                + "c.nombre AS cliente, "
+                + "d.fecha_devolucion_esperada "
+                + "FROM Detalle_Alquiler d "
+                + "INNER JOIN Vehiculos v         ON d.id_vehiculo = v.id_vehiculo "
+                + "INNER JOIN Ticket_Alquiler t   ON d.id_ticket   = t.id_ticket "
+                + "INNER JOIN Clientes c          ON t.id_cliente  = c.id_cliente "
+                + "WHERE CAST(t.fecha_emision AS DATE) = ? "
+                + "AND d.fecha_devolucion_real IS NULL "
+                + "ORDER BY d.fecha_devolucion_esperada ASC";
 
         PreparedStatement ps = con.prepareStatement(sql);
         ps.setString(1, fecha);
@@ -110,8 +116,8 @@ public class ReporteDAO {
             Object[] fila = {
                 rs.getString("vehiculo"),
                 rs.getString("placa"),
-                rs.getInt("veces_alquilado"),
-                rs.getDouble("ingresos")
+                rs.getString("cliente"),
+                rs.getDate("fecha_devolucion_esperada")
             };
             lista.add(fila);
         }
@@ -128,15 +134,16 @@ public class ReporteDAO {
         String sql = "SELECT "
                 + "c.nombre AS cliente, "
                 + "v.marca + ' ' + v.modelo AS vehiculo, "
-                + "a.fecha_devolucion_esperada, "
-                + "a.fecha_devolucion_real, "
-                + "a.mora "
-                + "FROM dbo.Alquileres a "
-                + "INNER JOIN dbo.Clientes c ON a.id_cliente = c.id_cliente "
-                + "INNER JOIN dbo.Vehiculos v ON a.id_vehiculo = v.id_vehiculo "
-                + "WHERE CAST(a.fecha_alquiler AS DATE) = ? "
-                + "AND a.mora > 0 "
-                + "ORDER BY a.mora DESC";
+                + "d.fecha_devolucion_esperada, "
+                + "d.fecha_devolucion_real, "
+                + "d.mora "
+                + "FROM Detalle_Alquiler d "
+                + "INNER JOIN Ticket_Alquiler t ON d.id_ticket   = t.id_ticket "
+                + "INNER JOIN Clientes c        ON t.id_cliente  = c.id_cliente "
+                + "INNER JOIN Vehiculos v       ON d.id_vehiculo = v.id_vehiculo "
+                + "WHERE CAST(t.fecha_emision AS DATE) = ? "
+                + "AND d.mora > 0 "
+                + "ORDER BY d.mora DESC";
 
         PreparedStatement ps = con.prepareStatement(sql);
         ps.setString(1, fecha);
@@ -157,3 +164,4 @@ public class ReporteDAO {
         return lista;
     }
 }
+

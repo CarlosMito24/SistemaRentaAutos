@@ -91,7 +91,7 @@
             padding-left: 10px;
             margin: 28px 0 14px;
         }
-        @media print { .no-print { display: none !important; } }
+
     </style>
 </head>
 <body class="bg-light">
@@ -103,14 +103,16 @@
         <!-- ENCABEZADO -->
         <div class="d-flex justify-content-between align-items-center my-4 flex-wrap">
             <h1 class="mb-2">📋 Reporte del Día</h1>
-            <div class="d-flex align-items-center no-print flex-wrap" style="gap:8px;">
+            <div class="d-flex align-items-center flex-wrap" style="gap:8px;">
                 <form method="get" action="ReporteServlet" class="form-inline mb-0">
                     <label class="mr-2 mb-0 font-weight-bold">Fecha:</label>
                     <input type="date" name="fecha" class="form-control mr-2"
                            value="<%= fecha %>">
                     <button type="submit" class="btn btn-primary">🔍 Buscar</button>
                 </form>
-                <button class="btn btn-secondary" onclick="window.print()">🖨️ Imprimir</button>
+                <a href="ExportarPDFServlet?fecha=<%= fecha %>" class="btn btn-danger">
+                    📄 Exportar PDF
+                </a>
             </div>
         </div>
 
@@ -162,41 +164,46 @@
             <table id="tablaDetalle" class="table table-hover table-striped table-bordered">
                 <thead class="thead-dark">
                     <tr>
-                        <th>#</th>
+                        <th>Ticket</th>
                         <th>Cliente</th>
                         <th>DUI</th>
                         <th>Vehículo</th>
                         <th>Placa</th>
-                        <th>F. Alquiler</th>
+                        <th>F. Emisión</th>
+                        <th>F. Entrega</th>
                         <th>F. Dev. Est.</th>
                         <th>F. Dev. Real</th>
                         <th>Precio/día</th>
                         <th>Subtotal</th>
                         <th>Mora</th>
-                        <th>Total</th>
+                        <th>Total Línea</th>
                     </tr>
                 </thead>
                 <tbody>
                 <% if (detalle != null && !detalle.isEmpty()) {
-                       for (Object[] f : detalle) { %>
-                    <tr>
-                        <td><%= f[0] %></td>
+                       for (Object[] f : detalle) {
+                           double mora = (Double) f[11];
+                           String rowClass = mora > 0 ? "table-danger" : "";
+                       %>
+                    <tr class="<%= rowClass %>">
+                        <td><span class="badge badge-secondary">#<%= f[0] %></span></td>
                         <td><strong><%= f[1] %></strong></td>
                         <td><%= f[2] %></td>
                         <td><%= f[3] %></td>
                         <td><span class="badge badge-success"><%= f[4] %></span></td>
                         <td><%= f[5] != null ? f[5].toString().substring(0,10) : "-" %></td>
-                        <td><%= f[6] != null ? f[6] : "-" %></td>
-                        <td><%= f[7] != null ? f[7].toString() : "<span class='text-muted'>Pendiente</span>" %></td>
-                        <td>$<%= String.format("%,.2f", (Double) f[8]) %></td>
-                        <td class="text-success font-weight-bold">$<%= String.format("%,.2f", (Double) f[9]) %></td>
-                        <td class="<%= ((Double)f[10]) > 0 ? "text-danger font-weight-bold" : "text-muted" %>">
-                            $<%= String.format("%,.2f", (Double) f[10]) %>
+                        <td><%= f[6] != null ? f[6].toString().substring(0,10) : "-" %></td>
+                        <td><%= f[7] != null ? f[7] : "-" %></td>
+                        <td><%= f[8] != null ? f[8].toString() : "<span class='text-muted'>Pendiente</span>" %></td>
+                        <td>$<%= String.format("%,.2f", (Double) f[9]) %></td>
+                        <td class="text-success font-weight-bold">$<%= String.format("%,.2f", (Double) f[10]) %></td>
+                        <td class="<%= mora > 0 ? "text-danger font-weight-bold" : "text-muted" %>">
+                            $<%= String.format("%,.2f", mora) %>
                         </td>
-                        <td class="text-warning font-weight-bold">$<%= String.format("%,.2f", (Double) f[11]) %></td>
+                        <td class="text-warning font-weight-bold">$<%= String.format("%,.2f", (Double) f[12]) %></td>
                     </tr>
                 <% } } else { %>
-                    <tr><td colspan="12" class="text-center text-muted py-4">
+                    <tr><td colspan="13" class="text-center text-muted py-4">
                         📭 No hay alquileres registrados para esta fecha.
                     </td></tr>
                 <% } %>
@@ -207,30 +214,30 @@
         <!-- FILA DOS COLUMNAS -->
         <div class="row">
 
-            <!-- VEHÍCULOS DEL DÍA -->
+            <!-- VEHÍCULOS ACTIVOS -->
             <div class="col-md-6">
-                <h5 class="section-title">🚗 Vehículos Alquilados</h5>
+                <h5 class="section-title">🚗 Vehículos Actualmente Alquilados</h5>
                 <div class="table-responsive">
                     <table id="tablaVehiculos" class="table table-hover table-striped table-bordered">
                         <thead class="thead-dark">
                             <tr>
                                 <th>Vehículo</th>
                                 <th>Placa</th>
-                                <th>Alquileres</th>
-                                <th>Ingresos</th>
+                                <th>Cliente</th>
+                                <th>Devolver antes de</th>
                             </tr>
                         </thead>
                         <tbody>
                         <% if (vehiculos != null && !vehiculos.isEmpty()) {
                                for (Object[] v : vehiculos) { %>
                             <tr>
-                                <td><%= v[0] %></td>
+                                <td><strong><%= v[0] %></strong></td>
                                 <td><span class="badge badge-success"><%= v[1] %></span></td>
-                                <td class="text-center font-weight-bold"><%= v[2] %></td>
-                                <td class="text-success font-weight-bold">$<%= String.format("%,.2f", (Double) v[3]) %></td>
+                                <td><%= v[2] %></td>
+                                <td><span class="badge badge-warning text-dark"><%= v[3] != null ? v[3] : "-" %></span></td>
                             </tr>
                         <% } } else { %>
-                            <tr><td colspan="4" class="text-center text-muted py-3">Sin datos</td></tr>
+                            <tr><td colspan="4" class="text-center text-success py-3">✅ Todos los vehículos fueron devueltos</td></tr>
                         <% } %>
                         </tbody>
                     </table>
@@ -286,5 +293,9 @@
     </script>
 </body>
 </html>
+
+
+
+
 
 

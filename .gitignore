@@ -1,13 +1,16 @@
-# Archivos de NetBeans
+# Carpetas de NetBeans
 nbproject/private/
-private.properties
-private.xml
-build/
-dist/
 nbbuild/
 nbdist/
+build/
+dist/
+
+# Configuraciones de entorno
+private.properties
+private.xml
 .nb-gradle/
-# Otros comunes
+
+# Compilados y empaquetados
 *.class
 *.jar
 *.war

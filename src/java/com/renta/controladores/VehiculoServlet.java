@@ -3,72 +3,84 @@ package com.renta.controladores;
 import com.renta.datos.VehiculoDAO;
 import com.renta.modelos.Vehiculo;
 import java.io.IOException;
-import javax.servlet.*;
-import javax.servlet.http.*;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 public class VehiculoServlet extends HttpServlet {
 
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        
+        response.setContentType("text/html;charset=UTF-8");
         request.setCharacterEncoding("UTF-8");
+        
         String accion = request.getParameter("accion");
         VehiculoDAO dao = new VehiculoDAO();
 
-        // 1. Manejo de eliminación lógica
+        // 1. ELIMINAR (Desactivación lógica)
         if ("eliminar".equals(accion)) {
-            int id = Integer.parseInt(request.getParameter("id"));
-            if (dao.eliminarVehiculoLogico(id)) {
-                response.sendRedirect("vehiculos.jsp?msg=Vehículo desactivado correctamente.");
-            } else {
-                response.sendRedirect("vehiculos.jsp?error=No se pudo desactivar el vehículo.");
+            try {
+                int id = Integer.parseInt(request.getParameter("id"));
+                if (dao.eliminarVehiculoLogico(id)) {
+                    response.sendRedirect("vehiculos.jsp?msg=desactivado");
+                } else {
+                    response.sendRedirect("vehiculos.jsp?error=error_db");
+                }
+            } catch (Exception e) {
+                response.sendRedirect("vehiculos.jsp?error=error_id");
             }
             return;
         }
 
-        // 2. Obtención de datos del formulario
+        // 2. GUARDAR / ACTUALIZAR
         String idStr = request.getParameter("txtId");
-        String placa = request.getParameter("txtPlaca");
         
-        Vehiculo v = new Vehiculo();
-        v.setMarca(request.getParameter("txtMarca"));
-        v.setModelo(request.getParameter("txtModelo"));
-        v.setPlaca(placa);
-        v.setCapacidad(Integer.parseInt(request.getParameter("txtCapacidad")));
-        v.setPrecioDiario(Double.parseDouble(request.getParameter("txtPrecio")));
-        v.setAnio(Integer.parseInt(request.getParameter("txtAnio")));
-        v.setColor(request.getParameter("txtColor"));
-        v.setDisponible(true); 
+        try {
+            Vehiculo v = new Vehiculo();
+            v.setMarca(request.getParameter("txtMarca").trim());
+            v.setModelo(request.getParameter("txtModelo").trim());
+            v.setPlaca(request.getParameter("txtPlaca").trim());
+            v.setCapacidad(Integer.parseInt(request.getParameter("txtCapacidad")));
+            
+            // Lógica de limpieza para evitar errores de formato en el precio
+            String precioStr = request.getParameter("txtPrecio").trim().replace(",", ".");
+            v.setPrecioDiario(Double.parseDouble(precioStr));
+            
+            v.setAnio(Integer.parseInt(request.getParameter("txtAnio")));
+            v.setColor(request.getParameter("txtColor").trim());
+            v.setDisponible(true);
 
-        boolean exito = false;
-        Vehiculo existente = dao.buscarPorPlaca(placa);
-
-        // 3. Lógica de registro o actualización
-        if (idStr == null || idStr.trim().isEmpty()) {
-            if (existente != null) {
-                if (!existente.isActivo()) {
-                    dao.reactivarVehiculo(existente.getIdVehiculo());
-                    response.sendRedirect("vehiculos.jsp?msg=La placa existía, vehículo reactivado exitosamente.");
+            if (idStr == null || idStr.trim().isEmpty()) {
+                // REGISTRO NUEVO
+                int resultado = dao.registrarVehiculo(v);
+                
+                if (resultado == 1) {
+                    response.sendRedirect("vehiculos.jsp?msg=registrado");
+                } else if (resultado == 2) {
+                    response.sendRedirect("vehiculos.jsp?msg=reactivado");
                 } else {
-                    response.sendRedirect("vehiculos.jsp?error=Ya existe un vehículo activo con esta placa.");
+                    response.sendRedirect("vehiculos.jsp?error=duplicado");
                 }
-                return;
+            } else {
+                // ACTUALIZACIÓN
+                v.setIdVehiculo(Integer.parseInt(idStr.trim()));
+                
+                Vehiculo existente = dao.buscarPorPlaca(v.getPlaca());
+                if (existente != null && existente.getIdVehiculo() != v.getIdVehiculo() && existente.isActivo()) {
+                    response.sendRedirect("vehiculos.jsp?error=placa_existente");
+                } else {
+                    if (dao.actualizarVehiculo(v)) {
+                        response.sendRedirect("vehiculos.jsp?msg=actualizado");
+                    } else {
+                        response.sendRedirect("vehiculos.jsp?error=error_db");
+                    }
+                }
             }
-            v.setActivo(true);
-            exito = dao.registrarVehiculo(v);
-        } else {
-            v.setIdVehiculo(Integer.parseInt(idStr.trim()));
-            if (existente != null && existente.getIdVehiculo() != v.getIdVehiculo()) {
-                response.sendRedirect("vehiculos.jsp?error=La placa ingresada ya pertenece a otro vehículo.");
-                return;
-            }
-            v.setActivo(true);
-            exito = dao.actualizarVehiculo(v);
-        }
-
-        // 4. Redirección final
-        if (exito) {
-            response.sendRedirect("vehiculos.jsp?msg=Operación realizada con éxito.");
-        } else if (!response.isCommitted()) {
-            response.sendRedirect("vehiculos.jsp?error=Error al procesar en la base de datos.");
+        } catch (NumberFormatException e) {
+            // Este catch capturará si algún campo numérico (Año, Capacidad o Precio) falla
+            response.sendRedirect("vehiculos.jsp?error=datos_invalidos");
         }
     }
 

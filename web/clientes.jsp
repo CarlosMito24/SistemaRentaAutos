@@ -17,12 +17,7 @@
         <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap4.min.css"/>
         <style>
-            /* Alineación profesional para los controles de DataTables */
-            .dataTables_wrapper .row {
-                display: flex;
-                align-items: center;
-                margin-bottom: 10px;
-            }
+            .dataTables_wrapper .row { display: flex; align-items: center; margin-bottom: 10px; }
             .dataTables_filter { text-align: right; }
         </style>
     </head>
@@ -31,7 +26,7 @@
 
         <div class="container-fluid p-3">
             <h1 class="text-center my-4">Gestión de Clientes</h1>
-            
+
             <button type="button" class="btn btn-primary mb-3" data-toggle="modal" data-target="#modalCliente" onclick="limpiarFormulario()">
                 + Nuevo Cliente
             </button>
@@ -56,7 +51,7 @@
                             <td><%= cli.getEdad()%></td>
                             <td><%= cli.getTelefono()%></td>
                             <td>
-                                <button class="btn btn-sm btn-warning" onclick="editarCliente(this)">Editar</button>
+                                <button class="btn btn-sm btn-warning btn-editar">Editar</button>
                                 <button class="btn btn-sm btn-danger" onclick="confirmarEliminar(<%= cli.getIdCliente()%>)">Eliminar</button>
                             </td>
                         </tr>
@@ -75,22 +70,10 @@
                         </div>
                         <div class="modal-body">
                             <input type="hidden" name="txtId" id="txtId">
-                            <div class="form-group">
-                                <label>Nombre:</label>
-                                <input type="text" name="txtNombre" id="txtNombre" class="form-control" placeholder="Ej. Juan Pérez" required>
-                            </div>
-                            <div class="form-group">
-                                <label>DUI:</label>
-                                <input type="text" name="txtDui" id="txtDui" class="form-control" placeholder="00000000-0" pattern="\d{8}-\d{1}" title="Formato: 00000000-0" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Edad:</label>
-                                <input type="number" name="txtEdad" id="txtEdad" class="form-control" placeholder="Ingrese edad (18-100)" min="18" max="100" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Teléfono:</label>
-                                <input type="text" name="txtTelefono" id="txtTelefono" class="form-control" placeholder="0000-0000" pattern="\d{4}-\d{4}" title="Formato: 0000-0000" required>
-                            </div>
+                            <div class="form-group"><label>Nombre:</label><input type="text" name="txtNombre" id="txtNombre" class="form-control" placeholder="Ej. Juan Pérez" minlength="3" required></div>
+                            <div class="form-group"><label>DUI:</label><input type="text" name="txtDui" id="txtDui" class="form-control" placeholder="00000000-0" pattern="\d{8}-\d{1}" title="Formato: 00000000-0" required></div>
+                            <div class="form-group"><label>Edad:</label><input type="number" name="txtEdad" id="txtEdad" class="form-control" placeholder="Ingrese edad (18-100)" min="18" max="100" required></div>
+                            <div class="form-group"><label>Teléfono:</label><input type="text" name="txtTelefono" id="txtTelefono" class="form-control" placeholder="0000-0000" pattern="\d{4}-\d{4}" title="Formato: 0000-0000" required></div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
@@ -108,40 +91,47 @@
 
         <script>
             $(document).ready(function () {
-                // Inicializar DataTables con la configuración de columnas (l=length, f=filter)
+                // Configuración local de DataTables
                 $('#tablaClientes').DataTable({
-                    "language": {
-                        "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json",
-                        "search": "Buscar:"
+                    language: {
+                        "sProcessing": "Procesando...",
+                        "sSearch": "Buscar:",
+                        "sLengthMenu": "Mostrar _MENU_ registros",
+                        "sInfo": "Mostrando _START_ al _END_ de _TOTAL_ registros",
+                        "sEmptyTable": "Ningún dato disponible",
+                        "oPaginate": { "sNext": "Siguiente", "sPrevious": "Anterior" }
                     },
                     "dom": '<"row"<"col-md-6"l><"col-md-6"f>>rtip'
                 });
 
-                // Lógica de mensajes SweetAlert
+                // Lógica de Alertas y limpieza de URL
                 const urlParams = new URLSearchParams(window.location.search);
                 if (urlParams.has('msg') || urlParams.has('error')) {
-                    let tipo = urlParams.has('msg') ? 'success' : 'error';
-                    let titulo = urlParams.has('msg') ? '¡Éxito!' : '¡Error!';
-                    let mensaje = decodeURIComponent((urlParams.get('msg') || urlParams.get('error')).replace(/\+/g, ' '));
-                    Swal.fire(titulo, mensaje, tipo).then(() => {
+                    Swal.fire({
+                        title: urlParams.has('msg') ? '¡Éxito!' : '¡Error!',
+                        text: urlParams.get('msg') || urlParams.get('error'),
+                        icon: urlParams.has('msg') ? 'success' : 'error',
+                        confirmButtonText: 'Aceptar'
+                    }).then(() => {
                         window.history.replaceState({}, document.title, window.location.pathname);
                     });
                 }
+
+                // Delegación de evento para Editar
+                $('#tablaClientes').on('click', '.btn-editar', function () {
+                    var fila = $(this).closest('tr');
+                    $('#txtId').val(fila.find('td:eq(0)').text());
+                    $('#txtNombre').val(fila.find('td:eq(1)').text());
+                    $('#txtDui').val(fila.find('td:eq(2)').text());
+                    $('#txtEdad').val(fila.find('td:eq(3)').text());
+                    $('#txtTelefono').val(fila.find('td:eq(4)').text());
+                    $('#modalCliente').modal('show');
+                });
             });
 
             function limpiarFormulario() {
                 $('#txtId').val('');
                 $('#modalCliente form')[0].reset();
-            }
-
-            function editarCliente(btn) {
-                var fila = $(btn).closest('tr');
-                $('#txtId').val(fila.find('td:eq(0)').text());
-                $('#txtNombre').val(fila.find('td:eq(1)').text());
-                $('#txtDui').val(fila.find('td:eq(2)').text());
-                $('#txtEdad').val(fila.find('td:eq(3)').text());
-                $('#txtTelefono').val(fila.find('td:eq(4)').text());
-                $('#modalCliente').modal('show');
             }
 
             function confirmarEliminar(id) {

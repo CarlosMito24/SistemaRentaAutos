@@ -26,7 +26,7 @@ public class ClienteServlet extends HttpServlet {
                 if (dao.eliminarClienteLogico(id)) {
                     response.sendRedirect("clientes.jsp?msg=Cliente+desactivado+correctamente");
                 } else {
-                    response.sendRedirect("clientes.jsp?error=No+se+pudo+realizar+la+operaci%C3%B3n");
+                    response.sendRedirect("clientes.jsp?error=No+se+pudo+desactivar+el+cliente");
                 }
             } catch (Exception e) {
                 response.sendRedirect("clientes.jsp?error=ID+inv%C3%A1lido");
@@ -41,7 +41,6 @@ public class ClienteServlet extends HttpServlet {
         String edadStr = request.getParameter("txtEdad");
         String tel = request.getParameter("txtTelefono");
 
-        // Ejecutar validación de backend
         String error = validarDatos(nombre, dui, edadStr, tel);
         if (error != null) {
             response.sendRedirect("clientes.jsp?error=" + error);
@@ -56,56 +55,46 @@ public class ClienteServlet extends HttpServlet {
             c.setTelefono(tel.trim());
             c.setActivo(true);
 
-            boolean exito;
             if (idStr == null || idStr.trim().isEmpty()) {
-                // El DAO ahora maneja la lógica de inserción o reactivación
-                exito = dao.registrarCliente(c);
+                // REGISTRO NUEVO (Usa la lógica de estados 1, 2, 0)
+                int resultado = dao.registrarCliente(c);
+                
+                if (resultado == 1) {
+                    response.sendRedirect("clientes.jsp?msg=Cliente+registrado+correctamente");
+                } else if (resultado == 2) {
+                    response.sendRedirect("clientes.jsp?msg=El+cliente+ya+exist%C3%ADa+y+fue+reactivado");
+                } else {
+                    response.sendRedirect("clientes.jsp?error=El+cliente+ya+existe+y+est%C3%A1+activo");
+                }
             } else {
+                // ACTUALIZACIÓN
                 c.setIdCliente(Integer.parseInt(idStr));
-                exito = dao.actualizarCliente(c);
+                if (dao.actualizarCliente(c)) {
+                    response.sendRedirect("clientes.jsp?msg=Cliente+actualizado+correctamente");
+                } else {
+                    response.sendRedirect("clientes.jsp?error=No+se+pudo+actualizar+el+cliente");
+                }
             }
 
-            if (exito) {
-                // Si exito es true, el cliente se guardó o se reactivó con éxito
-                response.sendRedirect("clientes.jsp?msg=Operaci%C3%B3n+exitosa");
-            } else {
-                // Si exito es false, es porque el cliente ya existe y está activo (duplicado)
-                response.sendRedirect("clientes.jsp?error=El+cliente+con+ese+DUI+ya+existe+y+est%C3%A1+activo");
-            }
         } catch (NumberFormatException e) {
-            response.sendRedirect("clientes.jsp?error=Datos+num%C3%A9ricos+inv%C3%A1lidos");
+            response.sendRedirect("clientes.jsp?error=Formato+de+datos+num%C3%A9ricos+inv%C3%A1lido");
         }
     }
 
-    // Método auxiliar de validación
     private String validarDatos(String nombre, String dui, String edadStr, String tel) {
-        if (nombre == null || nombre.trim().length() < 3) {
-            return "El+nombre+debe+tener+al+menos+3+caracteres";
-        }
-        if (dui == null || !dui.matches("\\d{8}-\\d{1}")) {
-            return "Formato+de+DUI+inv%C3%A1lido+(00000000-0)";
-        }
-        if (tel == null || !tel.matches("\\d{4}-\\d{4}")) {
-            return "Formato+de+tel%C3%A9fono+inv%C3%A1lido+(0000-0000)";
-        }
+        if (nombre == null || nombre.trim().length() < 3) return "Nombre+muy+corto";
+        if (dui == null || !dui.matches("\\d{8}-\\d{1}")) return "Formato+de+DUI+inv%C3%A1lido";
+        if (tel == null || !tel.matches("\\d{4}-\\d{4}")) return "Formato+de+tel%C3%A9fono+inv%C3%A1lido";
         try {
             int edad = Integer.parseInt(edadStr);
-            if (edad < 18 || edad > 100) {
-                return "La+edad+debe+ser+entre+18+y+100+a%C3%B1os";
-            }
-        } catch (NumberFormatException e) {
-            return "La+edad+debe+ser+un+n%C3%BAmero";
-        }
+            if (edad < 18 || edad > 100) return "La+edad+debe+ser+entre+18+y+100";
+        } catch (NumberFormatException e) { return "La+edad+debe+ser+n%C3%BAmero"; }
         return null;
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-        processRequest(req, res);
-    }
+    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException { processRequest(req, res); }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-        processRequest(req, res);
-    }
+    protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException { processRequest(req, res); }
 }

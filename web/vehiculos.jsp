@@ -2,6 +2,12 @@
 <%@page import="java.util.List"%>
 <%@page import="com.renta.datos.VehiculoDAO"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%
+    if (session == null || session.getAttribute("empleado") == null) {
+        response.sendRedirect("login.jsp");
+        return;
+    }
+%>
 <!DOCTYPE html>
 <html lang="es">
     <head>
@@ -10,14 +16,14 @@
         <title>Control de Vehículos - Sistema Renta Autos</title>
         <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap4.min.css"/>
+        <style>
+            .dataTables_wrapper .row { display: flex; align-items: center; margin-bottom: 10px; }
+            .dataTables_filter { text-align: right; }
+        </style>
     </head>
     <body class="bg-light">
         <jsp:include page="menu.jsp" />
         <div class="container-fluid p-3">
-            <%
-                VehiculoDAO dao = new VehiculoDAO();
-                List<Vehiculo> lista = dao.listarVehiculos();
-            %>
             <h1 class="text-center my-4">Gestión de Vehículos</h1>
 
             <button type="button" class="btn btn-primary mb-3" data-toggle="modal" data-target="#modalVehiculo" onclick="limpiarFormulario()">
@@ -32,7 +38,11 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <% for (Vehiculo v : lista) {%>
+                        <%
+                            VehiculoDAO dao = new VehiculoDAO();
+                            List<Vehiculo> lista = dao.listarVehiculos();
+                            for (Vehiculo v : lista) {
+                        %>
                         <tr>
                             <td><%= v.getIdVehiculo()%></td>
                             <td><%= v.getMarca()%></td>
@@ -65,11 +75,20 @@
                             <input type="hidden" name="txtId" id="txtId">
                             <div class="form-group"><label>Marca:</label><input type="text" name="txtMarca" id="txtMarca" class="form-control" required></div>
                             <div class="form-group"><label>Modelo:</label><input type="text" name="txtModelo" id="txtModelo" class="form-control" required></div>
-                            <div class="form-group"><label>Año:</label><input type="number" name="txtAnio" id="txtAnio" class="form-control" required min="1900"></div>
+                            <div class="form-group"><label>Año:</label><input type="number" name="txtAnio" id="txtAnio" class="form-control" required min="2000"></div>
                             <div class="form-group"><label>Color:</label><input type="text" name="txtColor" id="txtColor" class="form-control" required></div>
-                            <div class="form-group"><label>Placa:</label><input type="text" name="txtPlaca" id="txtPlaca" class="form-control" required></div>
+                            
+                            <div class="form-group">
+                                <label>Placa (Formato PXXX-XXX):</label>
+                                <input type="text" name="txtPlaca" id="txtPlaca" class="form-control" 
+                                       placeholder="P123-456" maxlength="8" 
+                                       pattern="P[0-9]{3}-[0-9]{3}" 
+                                       title="El formato debe ser P seguido de 3 números, un guion y 3 números (ej. P123-456)" 
+                                       required>
+                            </div>
+                            
                             <div class="form-group"><label>Capacidad:</label><input type="number" name="txtCapacidad" id="txtCapacidad" class="form-control" min="1" required></div>
-                            <div class="form-group"><label>Precio Diario ($):</label><input type="number" step="0.01" name="txtPrecio" id="txtPrecio" class="form-control" min="0.01" required></div>
+                            <div class="form-group"><label>Precio Diario ($):</label><input type="text" name="txtPrecio" id="txtPrecio" class="form-control" required></div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
@@ -87,66 +106,47 @@
 
         <script>
             $(document).ready(function () {
-                // 1. Inicialización de tabla con idioma local (sin peticiones externas)
                 $('#tablaVehiculos').DataTable({
-                    language: {
-                        "sProcessing": "Procesando...",
-                        "sSearch": "Buscar:",
-                        "sLengthMenu": "Mostrar _MENU_ registros",
-                        "sInfo": "Mostrando _START_ al _END_ de _TOTAL_ registros",
-                        "sEmptyTable": "Ningún dato disponible",
-                        "oPaginate": { "sNext": "Siguiente", "sPrevious": "Anterior" }
-                    }
+                    language: { "sSearch": "Buscar:", "sInfo": "Mostrando _START_ al _END_ de _TOTAL_ registros", "oPaginate": {"sNext": "Siguiente", "sPrevious": "Anterior"} }
                 });
 
-                // 2. Lógica para mensajes SweetAlert
+                // Validaciones en tiempo real
+                $('#txtPrecio').on('input', function () { this.value = this.value.replace(/[^0-9.]/g, ''); });
+                
+                // Asegurar que la placa mantenga el formato en mayúsculas
+                $('#txtPlaca').on('input', function () {
+                    this.value = this.value.toUpperCase();
+                });
+
+                // Lógica de mensajes
                 const urlParams = new URLSearchParams(window.location.search);
                 if (urlParams.has('msg') || urlParams.has('error')) {
-                    Swal.fire(
-                        urlParams.has('msg') ? '¡Éxito!' : '¡Error!',
-                        urlParams.get('msg') || urlParams.get('error'),
-                        urlParams.has('msg') ? 'success' : 'error'
-                    ).then(() => {
-                        window.history.replaceState({}, document.title, window.location.pathname);
-                    });
+                    Swal.fire({
+                        title: urlParams.has('msg') ? '¡Éxito!' : '¡Error!',
+                        text: urlParams.get('msg') || urlParams.get('error'),
+                        icon: urlParams.has('msg') ? 'success' : 'error'
+                    }).then(() => window.history.replaceState({}, document.title, window.location.pathname));
                 }
 
-                // 3. Delegación de eventos para botón editar (garantiza funcionamiento tras paginar)
-                $('#tablaVehiculos').on('click', '.btn-editar', function() {
+                $('#tablaVehiculos').on('click', '.btn-editar', function () {
                     var fila = $(this).closest('tr');
-                    $('#txtId').val(fila.find('td:eq(0)').text());
-                    $('#txtMarca').val(fila.find('td:eq(1)').text());
-                    $('#txtModelo').val(fila.find('td:eq(2)').text());
-                    $('#txtAnio').val(fila.find('td:eq(3)').text());
-                    $('#txtColor').val(fila.find('td:eq(4)').text());
-                    $('#txtPlaca').val(fila.find('td:eq(5)').text());
-                    
-                    var cap = fila.find('td:eq(6)').text().replace(' psj.', '');
-                    $('#txtCapacidad').val(parseInt(cap));
-                    
-                    var precio = fila.find('td:eq(7)').text().replace('$', '');
-                    $('#txtPrecio').val(precio);
-                    
+                    $('#txtId').val(fila.find('td:eq(0)').text().trim());
+                    $('#txtMarca').val(fila.find('td:eq(1)').text().trim());
+                    $('#txtModelo').val(fila.find('td:eq(2)').text().trim());
+                    $('#txtAnio').val(fila.find('td:eq(3)').text().trim());
+                    $('#txtColor').val(fila.find('td:eq(4)').text().trim());
+                    $('#txtPlaca').val(fila.find('td:eq(5)').text().trim());
+                    $('#txtCapacidad').val(parseInt(fila.find('td:eq(6)').text()));
+                    $('#txtPrecio').val(fila.find('td:eq(7)').text().replace('$', '').trim());
                     $('#modalVehiculo').modal('show');
                 });
             });
 
-            function limpiarFormulario() {
-                $('#txtId').val('');
-                $('#modalVehiculo form')[0].reset();
-            }
+            function limpiarFormulario() { $('#txtId').val(''); $('#modalVehiculo form')[0].reset(); }
 
             function confirmarEliminar(id) {
-                Swal.fire({
-                    title: '¿Estás seguro?',
-                    text: "Esta acción desactivará el vehículo.",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    confirmButtonText: 'Sí, desactivar'
-                }).then((result) => {
-                    if (result.isConfirmed)
-                        window.location.href = 'VehiculoServlet?accion=eliminar&id=' + id;
+                Swal.fire({ title: '¿Estás seguro?', text: "Esta acción desactivará el vehículo.", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Sí, desactivar' }).then((result) => {
+                    if (result.isConfirmed) window.location.href = 'VehiculoServlet?accion=eliminar&id=' + id;
                 });
             }
         </script>

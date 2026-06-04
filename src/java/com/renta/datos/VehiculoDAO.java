@@ -16,7 +16,7 @@ public class VehiculoDAO {
         if (existente != null && !existente.isActivo()) {
             return reactivarVehiculo(existente.getIdVehiculo()) ? 2 : 0;
         }
-        
+
         // 2. Si existe y ya está activo -> Error (0)
         if (existente != null && existente.isActivo()) {
             return 0;
@@ -118,6 +118,37 @@ public class VehiculoDAO {
             }
         } catch (SQLException e) {
             System.out.println("❌ Error listar: " + e.getMessage());
+        }
+        return lista;
+    }
+
+    /**
+     * Lista solo los vehículos que están marcados como disponibles (disponible
+     * = 1) y que están activos en el sistema (activo = 1).
+     */
+    public List<Vehiculo> listarVehiculosDisponibles() {
+        List<Vehiculo> lista = new ArrayList<>();
+        // Filtramos por disponible = 1 y activo = 1
+        String sql = "SELECT * FROM Vehiculos WHERE disponible = 1 AND activo = 1";
+
+        try (Connection cn = Conexion.conectar(); PreparedStatement pst = cn.prepareStatement(sql); ResultSet rs = pst.executeQuery()) {
+
+            while (rs.next()) {
+                Vehiculo v = new Vehiculo();
+                v.setIdVehiculo(rs.getInt("id_vehiculo"));
+                v.setMarca(rs.getString("marca"));
+                v.setModelo(rs.getString("modelo"));
+                v.setPlaca(rs.getString("placa"));
+                v.setCapacidad(rs.getInt("capacidad"));
+                v.setPrecioDiario(rs.getDouble("precio_diario"));
+                v.setDisponible(rs.getBoolean("disponible"));
+                v.setActivo(rs.getBoolean("activo"));
+                v.setAnio(rs.getInt("anio"));
+                v.setColor(rs.getString("color"));
+                lista.add(v);
+            }
+        } catch (SQLException e) {
+            System.out.println("❌ Error en listarVehiculosDisponibles: " + e.getMessage());
         }
         return lista;
     }

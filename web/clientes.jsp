@@ -2,23 +2,36 @@
 <%@page import="com.renta.modelos.Cliente"%>
 <%@page import="java.util.List"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%
+    if (session == null || session.getAttribute("empleado") == null) {
+        response.sendRedirect("login.jsp");
+        return;
+    }
+%>
 <!DOCTYPE html>
 <html lang="es">
     <head>
-        <meta charset="UTF-8" />
+        <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Control de Clientes - Sistema Renta Autos</title>
-
+        <title>Control de Clientes - Renta de Autos</title>
         <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap4.min.css"/>
+        <style>
+            /* Alineación profesional para los controles de DataTables */
+            .dataTables_wrapper .row {
+                display: flex;
+                align-items: center;
+                margin-bottom: 10px;
+            }
+            .dataTables_filter { text-align: right; }
+        </style>
     </head>
     <body class="bg-light">
-
         <jsp:include page="menu.jsp" />
 
         <div class="container-fluid p-3">
-            <h1 class="text-center my-4">Gesti&#243;n de Clientes</h1>
-
+            <h1 class="text-center my-4">Gestión de Clientes</h1>
+            
             <button type="button" class="btn btn-primary mb-3" data-toggle="modal" data-target="#modalCliente" onclick="limpiarFormulario()">
                 + Nuevo Cliente
             </button>
@@ -27,7 +40,7 @@
                 <table id="tablaClientes" class="table table-hover table-striped table-bordered">
                     <thead class="thead-dark">
                         <tr>
-                            <th>ID</th><th>Nombre</th><th>DUI</th><th>Edad</th><th>Tel&#233;fono</th><th>Acciones</th>
+                            <th>ID</th><th>Nombre</th><th>DUI</th><th>Edad</th><th>Teléfono</th><th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -62,10 +75,22 @@
                         </div>
                         <div class="modal-body">
                             <input type="hidden" name="txtId" id="txtId">
-                            <div class="form-group"><label>Nombre:</label><input type="text" name="txtNombre" id="txtNombre" class="form-control" placeholder="Ingrese nombre completo" required></div>
-                            <div class="form-group"><label>DUI:</label><input type="text" name="txtDui" id="txtDui" class="form-control" placeholder="00000000-0" required></div>
-                            <div class="form-group"><label>Edad:</label><input type="number" name="txtEdad" id="txtEdad" class="form-control" placeholder="Ingrese edad" required></div>
-                            <div class="form-group"><label>Tel&#233;fono:</label><input type="text" name="txtTelefono" id="txtTelefono" class="form-control" placeholder="0000-0000" required></div>
+                            <div class="form-group">
+                                <label>Nombre:</label>
+                                <input type="text" name="txtNombre" id="txtNombre" class="form-control" placeholder="Ej. Juan Pérez" required>
+                            </div>
+                            <div class="form-group">
+                                <label>DUI:</label>
+                                <input type="text" name="txtDui" id="txtDui" class="form-control" placeholder="00000000-0" pattern="\d{8}-\d{1}" title="Formato: 00000000-0" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Edad:</label>
+                                <input type="number" name="txtEdad" id="txtEdad" class="form-control" placeholder="Ingrese edad (18-100)" min="18" max="100" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Teléfono:</label>
+                                <input type="text" name="txtTelefono" id="txtTelefono" class="form-control" placeholder="0000-0000" pattern="\d{4}-\d{4}" title="Formato: 0000-0000" required>
+                            </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
@@ -79,57 +104,73 @@
         <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
         <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
-        <script src="https://cdn.datatables.net/1.10.24/js/dataTables.bootstrap4.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
         <script>
-                                    $(document).ready(function () {
-                                        // Inicializar DataTables
-                                        $('#tablaClientes').DataTable({"language": {"url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"}});
+            $(document).ready(function () {
+                // Inicializar DataTables con la configuración de columnas (l=length, f=filter)
+                $('#tablaClientes').DataTable({
+                    "language": {
+                        "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json",
+                        "search": "Buscar:"
+                    },
+                    "dom": '<"row"<"col-md-6"l><"col-md-6"f>>rtip'
+                });
 
-                                        // Cierre autom&#225;tico del men&#250; en m&#243;viles
-                                        $('.navbar-nav>li>a').on('click', function () {
-                                            $('.navbar-collapse').collapse('hide');
-                                        });
+                // Lógica de mensajes SweetAlert
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.has('msg') || urlParams.has('error')) {
+                    let tipo = urlParams.has('msg') ? 'success' : 'error';
+                    let titulo = urlParams.has('msg') ? '¡Éxito!' : '¡Error!';
+                    let mensaje = decodeURIComponent((urlParams.get('msg') || urlParams.get('error')).replace(/\+/g, ' '));
+                    Swal.fire(titulo, mensaje, tipo).then(() => {
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    });
+                }
+            });
 
-                                        // L&#243;gica de Alertas (SweetAlert)
-                                        const urlParams = new URLSearchParams(window.location.search);
-                                        if (urlParams.has('msg')) {
-                                            Swal.fire('&#161;&#201;xito!', urlParams.get('msg'), 'success');
-                                        } else if (urlParams.has('error')) {
-                                            Swal.fire('&#161;Error!', urlParams.get('error'), 'error');
-                                        }
-                                    });
+            function limpiarFormulario() {
+                $('#txtId').val('');
+                $('#modalCliente form')[0].reset();
+            }
 
-                                    function limpiarFormulario() {
-                                        $('#txtId').val('');
-                                        $('#modalCliente form')[0].reset();
-                                    }
+            function editarCliente(btn) {
+                var fila = $(btn).closest('tr');
+                $('#txtId').val(fila.find('td:eq(0)').text());
+                $('#txtNombre').val(fila.find('td:eq(1)').text());
+                $('#txtDui').val(fila.find('td:eq(2)').text());
+                $('#txtEdad').val(fila.find('td:eq(3)').text());
+                $('#txtTelefono').val(fila.find('td:eq(4)').text());
+                $('#modalCliente').modal('show');
+            }
 
-                                    function editarCliente(btn) {
-                                        var fila = $(btn).closest('tr');
-                                        $('#txtId').val(fila.find('td:eq(0)').text());
-                                        $('#txtNombre').val(fila.find('td:eq(1)').text());
-                                        $('#txtDui').val(fila.find('td:eq(2)').text());
-                                        $('#txtEdad').val(fila.find('td:eq(3)').text());
-                                        $('#txtTelefono').val(fila.find('td:eq(4)').text());
-                                        $('#modalCliente').modal('show');
-                                    }
+            function confirmarEliminar(id) {
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: "Esta acción desactivará al cliente.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    confirmButtonText: 'Sí, eliminar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = 'ClienteServlet?accion=eliminar&id=' + id;
+                    }
+                });
+            }
 
-                                    function confirmarEliminar(id) {
-                                        Swal.fire({
-                                            title: '&#191;Est&#225;s seguro?',
-                                            text: "Esta acci&#243;n desactivar&#225; al cliente.",
-                                            icon: 'warning',
-                                            showCancelButton: true,
-                                            confirmButtonColor: '#d33',
-                                            cancelButtonColor: '#3085d6',
-                                            confirmButtonText: 'S&#237;, eliminar'
-                                        }).then((result) => {
-                                            if (result.isConfirmed)
-                                                window.location.href = 'ClienteServlet?accion=eliminar&id=' + id;
-                                        });
-                                    }
+            // Formateadores de entrada
+            document.getElementById('txtDui').addEventListener('input', function (e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 8) value = value.substring(0, 8) + '-' + value.substring(8, 9);
+                e.target.value = value;
+            });
+
+            document.getElementById('txtTelefono').addEventListener('input', function (e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 4) value = value.substring(0, 4) + '-' + value.substring(4, 8);
+                e.target.value = value;
+            });
         </script>
     </body>
 </html>

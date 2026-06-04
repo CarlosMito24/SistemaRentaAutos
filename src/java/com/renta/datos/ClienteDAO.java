@@ -12,11 +12,21 @@ import java.util.List;
 public class ClienteDAO {
 
     public boolean registrarCliente(Cliente cte) {
+        Cliente existente = buscarPorDui(cte.getDui());
+
+        // Si existe y está inactivo -> Reactivamos
+        if (existente != null && !existente.isActivo()) {
+            return reactivarCliente(existente.getIdCliente());
+        }
+        // Si existe y ya está activo -> Retornamos false (para que el servlet muestre el error)
+        if (existente != null && existente.isActivo()) {
+            return false;
+        }
+
+        // Si NO existe, procedemos con el INSERT normal
         Connection cn = Conexion.conectar();
         PreparedStatement pst = null;
-        // Se agregó 'activo' en el SQL
         String sql = "INSERT INTO Clientes (nombre, dui, edad, telefono, activo) VALUES (?, ?, ?, ?, ?)";
-
         try {
             if (cn != null) {
                 pst = cn.prepareStatement(sql);
@@ -24,12 +34,11 @@ public class ClienteDAO {
                 pst.setString(2, cte.getDui());
                 pst.setInt(3, cte.getEdad());
                 pst.setString(4, cte.getTelefono());
-                pst.setBoolean(5, cte.isActivo()); // Nuevo campo
-
+                pst.setBoolean(5, true);
                 return pst.executeUpdate() > 0;
             }
         } catch (SQLException e) {
-            System.out.println("❌ Error al registrar cliente: " + e.getMessage());
+            System.out.println("Error: " + e.getMessage());
         } finally {
             try {
                 if (pst != null) {
@@ -39,7 +48,33 @@ public class ClienteDAO {
                     cn.close();
                 }
             } catch (SQLException ex) {
-                System.out.println(ex.getMessage());
+            }
+        }
+        return false;
+    }
+
+// Agrega este método para cambiar el estado a 1 (activo)
+    public boolean reactivarCliente(int id) {
+        Connection cn = Conexion.conectar();
+        PreparedStatement pst = null;
+        String sql = "UPDATE Clientes SET activo = 1 WHERE id_cliente = ?";
+        try {
+            if (cn != null) {
+                pst = cn.prepareStatement(sql);
+                pst.setInt(1, id);
+                return pst.executeUpdate() > 0;
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        } finally {
+            try {
+                if (pst != null) {
+                    pst.close();
+                }
+                if (cn != null) {
+                    cn.close();
+                }
+            } catch (SQLException ex) {
             }
         }
         return false;
@@ -193,5 +228,41 @@ public class ClienteDAO {
             }
         }
         return false;
+    }
+
+    public Cliente buscarPorDui(String dui) {
+        Cliente cte = null;
+        Connection cn = Conexion.conectar();
+        PreparedStatement pst = null;
+        ResultSet rs = null;
+        String sql = "SELECT * FROM Clientes WHERE dui = ?";
+        try {
+            if (cn != null) {
+                pst = cn.prepareStatement(sql);
+                pst.setString(1, dui);
+                rs = pst.executeQuery();
+                if (rs.next()) {
+                    cte = new Cliente();
+                    cte.setIdCliente(rs.getInt("id_cliente"));
+                    cte.setActivo(rs.getBoolean("activo"));
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (pst != null) {
+                    pst.close();
+                }
+                if (cn != null) {
+                    cn.close();
+                }
+            } catch (SQLException ex) {
+            }
+        }
+        return cte;
     }
 }

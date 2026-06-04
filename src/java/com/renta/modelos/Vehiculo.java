@@ -1,8 +1,5 @@
 package com.renta.modelos;
 
-/**
- * @author carlo
- */
 public class Vehiculo {
 
     private int idVehiculo;

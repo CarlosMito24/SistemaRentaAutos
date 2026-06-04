@@ -14,6 +14,15 @@
 <%@page import="java.util.Date"%>
 <%@page import="java.text.SimpleDateFormat"%>
 <%@page import="java.text.SimpleDateFormat"%>
+
+<%
+    // Verificación de seguridad forzada
+    if (session == null || session.getAttribute("empleado") == null) {
+        response.sendRedirect("login.jsp");
+        return; // IMPORTANTE: El return detiene la ejecución del resto del JSP
+    }
+%>
+
 <!DOCTYPE html>
 <html lang="es">
     <head>

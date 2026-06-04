@@ -77,7 +77,6 @@
             </ul>
             <ul class="navbar-nav ml-auto">
                 <li class="nav-item usuario">
-                    <strong><%= empMenu.getNombreCompleto()%></strong>
                     <a href="LogoutServlet" class="btn-logout">Cerrar Sesión</a>
                 </li>
             </ul>

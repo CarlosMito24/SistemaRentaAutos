@@ -13,79 +13,99 @@ public class ClienteServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        response.setContentType("text/html;charset=UTF-8");
         request.setCharacterEncoding("UTF-8");
+
         String accion = request.getParameter("accion");
         ClienteDAO dao = new ClienteDAO();
 
-        // 1. ACCIÓN: ELIMINAR (DESACTIVAR)
-        if (accion != null && accion.equals("eliminar")) {
+        // 1. ELIMINAR
+        if ("eliminar".equals(accion)) {
             try {
                 int id = Integer.parseInt(request.getParameter("id"));
                 if (dao.eliminarClienteLogico(id)) {
-                    response.sendRedirect("clientes.jsp?msg=Cliente desactivado correctamente.");
+                    response.sendRedirect("clientes.jsp?msg=Cliente+desactivado+correctamente");
                 } else {
-                    response.sendRedirect("clientes.jsp?error=No se pudo desactivar el cliente.");
+                    response.sendRedirect("clientes.jsp?error=No+se+pudo+realizar+la+operaci%C3%B3n");
                 }
             } catch (Exception e) {
-                response.sendRedirect("clientes.jsp?error=ID inválido.");
+                response.sendRedirect("clientes.jsp?error=ID+inv%C3%A1lido");
             }
             return;
         }
 
-        // 2. ACCIÓN: GUARDAR / ACTUALIZAR
+        // 2. GUARDAR / ACTUALIZAR
         String idStr = request.getParameter("txtId");
         String nombre = request.getParameter("txtNombre");
         String dui = request.getParameter("txtDui");
         String edadStr = request.getParameter("txtEdad");
-        String telefono = request.getParameter("txtTelefono");
+        String tel = request.getParameter("txtTelefono");
 
-        // Validación básica
-        if (nombre == null || dui == null || edadStr == null || telefono == null) {
-            response.sendRedirect("clientes.jsp?error=Datos incompletos.");
+        // Ejecutar validación de backend
+        String error = validarDatos(nombre, dui, edadStr, tel);
+        if (error != null) {
+            response.sendRedirect("clientes.jsp?error=" + error);
             return;
         }
 
-        int edad = Integer.parseInt(edadStr);
-        if (edad < 18) {
-            response.sendRedirect("clientes.jsp?error=El cliente debe ser mayor de 18 años.");
-            return;
-        }
+        try {
+            Cliente c = new Cliente();
+            c.setNombre(nombre.trim());
+            c.setDui(dui.trim());
+            c.setEdad(Integer.parseInt(edadStr));
+            c.setTelefono(tel.trim());
+            c.setActivo(true);
 
-        Cliente cliente = new Cliente();
-        cliente.setNombre(nombre);
-        cliente.setDui(dui);
-        cliente.setEdad(edad);
-        cliente.setTelefono(telefono);
+            boolean exito;
+            if (idStr == null || idStr.trim().isEmpty()) {
+                // El DAO ahora maneja la lógica de inserción o reactivación
+                exito = dao.registrarCliente(c);
+            } else {
+                c.setIdCliente(Integer.parseInt(idStr));
+                exito = dao.actualizarCliente(c);
+            }
 
-        boolean exito;
-        // Si no hay ID, es un registro nuevo
-        if (idStr == null || idStr.trim().isEmpty()) {
-            // FORZAMOS A TRUE PARA NUEVOS CLIENTES
-            cliente.setActivo(true);
-            exito = dao.registrarCliente(cliente);
-        } else {
-            // Es una actualización: se mantiene el estado que ya tenía o el que se decida
-            cliente.setIdCliente(Integer.parseInt(idStr.trim()));
-            cliente.setActivo(true); // Opcional: ajustar según si permites activar clientes desde el modal
-            exito = dao.actualizarCliente(cliente);
-        }
-
-        if (exito) {
-            response.sendRedirect("clientes.jsp?msg=Operación realizada con éxito.");
-        } else {
-            response.sendRedirect("clientes.jsp?error=Error al guardar en la base de datos.");
+            if (exito) {
+                // Si exito es true, el cliente se guardó o se reactivó con éxito
+                response.sendRedirect("clientes.jsp?msg=Operaci%C3%B3n+exitosa");
+            } else {
+                // Si exito es false, es porque el cliente ya existe y está activo (duplicado)
+                response.sendRedirect("clientes.jsp?error=El+cliente+con+ese+DUI+ya+existe+y+est%C3%A1+activo");
+            }
+        } catch (NumberFormatException e) {
+            response.sendRedirect("clientes.jsp?error=Datos+num%C3%A9ricos+inv%C3%A1lidos");
         }
     }
 
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
+    // Método auxiliar de validación
+    private String validarDatos(String nombre, String dui, String edadStr, String tel) {
+        if (nombre == null || nombre.trim().length() < 3) {
+            return "El+nombre+debe+tener+al+menos+3+caracteres";
+        }
+        if (dui == null || !dui.matches("\\d{8}-\\d{1}")) {
+            return "Formato+de+DUI+inv%C3%A1lido+(00000000-0)";
+        }
+        if (tel == null || !tel.matches("\\d{4}-\\d{4}")) {
+            return "Formato+de+tel%C3%A9fono+inv%C3%A1lido+(0000-0000)";
+        }
+        try {
+            int edad = Integer.parseInt(edadStr);
+            if (edad < 18 || edad > 100) {
+                return "La+edad+debe+ser+entre+18+y+100+a%C3%B1os";
+            }
+        } catch (NumberFormatException e) {
+            return "La+edad+debe+ser+un+n%C3%BAmero";
+        }
+        return null;
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
+    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        processRequest(req, res);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        processRequest(req, res);
     }
 }

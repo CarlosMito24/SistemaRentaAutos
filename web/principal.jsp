@@ -11,7 +11,7 @@
     // Verificación de seguridad forzada
     if (session == null || session.getAttribute("empleado") == null) {
         response.sendRedirect("login.jsp");
-        return; // IMPORTANTE: El return detiene la ejecución del resto del JSP
+        return; 
     }
 %>
 
@@ -20,134 +20,196 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Principal - Renta Autos</title>
+    <title>Panel Principal - Renta Autos ITCA</title>
+    <link rel="icon" href="img/login.jpg" type="image/jpeg">
+    
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+    
     <style>
-        body { background-color: #f0f2f5; margin: 0; min-height: 100vh; }
+        :root {
+            --primary: #1e293b;
+            --accent: #3b82f6;
+            --bg-light: #f4f7f6;
+            --text-dark: #2c3e50;
+            --text-muted: #6c757d;
+            --border: #e2e8f0;
+            --radius: 12px;
+        }
 
+        body { 
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0; 
+            min-height: 100vh; 
+        }
+
+        /* ── HERO SECTION ── */
         .hero {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%);
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
             color: white;
             padding: 40px 35px;
             margin: 18px 24px 25px 24px;
-            border-radius: 16px;
+            border-radius: var(--radius);
             position: relative;
             overflow: hidden;
-            box-shadow: 0 8px 32px rgba(15, 52, 96, 0.35);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
         }
         .hero::before {
             content: '';
             position: absolute; top: -60px; right: -60px;
-            width: 220px; height: 220px; border-radius: 50%;
-            background: rgba(240, 165, 0, 0.08);
-        }
-        .hero::after {
-            content: '';
-            position: absolute; bottom: -40px; right: 180px;
-            width: 130px; height: 130px; border-radius: 50%;
-            background: rgba(99, 179, 237, 0.07);
+            width: 250px; height: 250px; border-radius: 50%;
+            background: rgba(59, 130, 246, 0.15);
         }
         .hero-inner { position: relative; z-index: 1; }
+        
         .hero h2 {
-            font-size: 32px; font-weight: 800; margin: 0 0 6px 0;
-            letter-spacing: -0.5px;
+            font-size: 32px;
+            font-weight: 800;
+            margin: 0 0 8px 0;
+            letter-spacing: 0.5px;
         }
+        .hero h2 span { color: #60a5fa; }
+        
         .hero-sub {
-            margin: 0; font-size: 14px;
-            color: rgba(255,255,255,0.55);
-            display: flex; align-items: center; gap: 8px;
+            margin: 0;
+            font-size: 14px;
+            color: #cbd5e1;
+            display: flex; align-items: center; gap: 10px;
         }
-        .hero-sub .sep { opacity: 0.3; }
+        .hero-sub .sep { opacity: 0.5; }
         .hero-badge {
-            display: inline-flex; align-items: center; gap: 6px;
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 20px; padding: 4px 14px;
-            font-size: 12px; color: rgba(255,255,255,0.7);
-        }
-        .hero-cars {
-            position: absolute; right: 35px; top: 50%;
-            transform: translateY(-50%);
-            font-size: 72px; opacity: 0.07;
-            user-select: none; pointer-events: none;
+            display: inline-flex;
+            align-items: center; gap: 6px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 20px; padding: 4px 15px;
+            font-weight: 600;
+            color: #f8fafc;
         }
 
-        /* KPI cards */
+        /* ── KPI CARDS ── */
         .card-metrica {
-            border: none; border-radius: 12px; padding: 22px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+            background: #ffffff;
+            border: none;
+            border-radius: var(--radius); 
+            padding: 22px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             display: flex; align-items: center; gap: 18px;
-            background: white; height: 100%;
-            transition: transform 0.15s;
+            height: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
-        .card-metrica:hover { transform: translateY(-3px); }
+        .card-metrica:hover { 
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
         .metrica-icono {
-            font-size: 36px; width: 65px; height: 65px; border-radius: 50%;
+            font-size: 28px;
+            width: 60px; height: 60px; 
+            border-radius: 12px;
             display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         }
-        .metrica-info h3 { font-size: 34px; font-weight: bold; margin: 0; line-height: 1; }
-        .metrica-info p  { margin: 4px 0 0 0; color: #888; font-size: 13px; }
+        
+        /* Colores de íconos */
+        .bg-azul    { background-color: #dbeafe; color: #2563eb; }
+        .bg-verde   { background-color: #dcfce7; color: #16a34a; }
+        .bg-naranja { background-color: #ffedd5; color: #ea580c; }
+        .bg-rojo    { background-color: #fee2e2; color: #dc2626; }
+        .bg-morado  { background-color: #ede9fe; color: #7c3aed; }
+        .bg-cyan    { background-color: #cffafe; color: #0891b2; }
 
-        .bg-azul    { background-color: #dbeafe; } .txt-azul    { color: #2563eb; }
-        .bg-verde   { background-color: #dcfce7; } .txt-verde   { color: #16a34a; }
-        .bg-naranja { background-color: #ffedd5; } .txt-naranja { color: #ea580c; }
-        .bg-rojo    { background-color: #fee2e2; } .txt-rojo    { color: #dc2626; }
-        .bg-morado  { background-color: #ede9fe; } .txt-morado  { color: #7c3aed; }
-        .bg-cyan    { background-color: #cffafe; } .txt-cyan    { color: #0891b2; }
+        .metrica-info h3 { 
+            font-size: 32px; 
+            font-weight: 800;
+            color: var(--text-dark);
+            margin: 0; line-height: 1;
+        }
+        .metrica-info p { 
+            margin: 6px 0 0 0; 
+            color: var(--text-muted);
+            font-size: 13px; 
+            font-weight: 600;
+            text-transform: uppercase;
+        }
 
+        /* ── PANELS ── */
         .panel-card {
-            background: white; border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
-            padding: 22px; height: 100%;
+            background: #ffffff;
+            border: none;
+            border-radius: var(--radius);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            padding: 24px; 
+            height: 100%;
         }
         .panel-titulo {
-            font-size: 16px; font-weight: bold; color: #2c3e50;
-            margin-bottom: 15px; padding-bottom: 10px;
-            border-bottom: 2px solid #f0f0f0;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 20px; padding-bottom: 12px;
+            border-bottom: 2px solid var(--bg-light);
         }
 
-        /* Flota */
-        .flota-label { display: flex; justify-content: space-between; font-size: 13px; color: #555; margin-bottom: 6px; }
-        .progress { height: 18px; border-radius: 10px; background: #e9ecef; }
-        .progress-bar { border-radius: 10px; font-size: 12px; font-weight: bold; }
+        /* ── CONTENEDOR DE GRÁFICA ── */
+        .chart-container {
+            position: relative;
+            height: 250px; 
+            width: 100%;
+        }
 
-        /* Meta */
+        /* ── FLOTA & META ── */
+        .flota-label { display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; color: var(--text-dark); margin-bottom: 8px; }
+        .progress { 
+            height: 20px; 
+            border-radius: 10px; 
+            background: var(--bg-light); 
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .progress-bar { 
+            font-size: 12px; font-weight: bold; line-height: 20px;
+        }
+
         .meta-numero { text-align: center; margin: 10px 0 5px; }
-        .meta-numero span { font-size: 42px; font-weight: bold; color: #2563eb; }
-        .meta-numero small { font-size: 18px; color: #aaa; }
-        .meta-label { text-align: center; color: #888; font-size: 13px; margin-bottom: 12px; }
+        .meta-numero span { font-size: 42px; font-weight: 800; color: var(--accent); }
+        .meta-numero small { font-size: 18px; color: var(--text-muted); font-weight: 600; }
+        .meta-label { text-align: center; color: var(--text-muted); font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 15px; }
 
-        /* Badges devoluciones */
-        .badge-hoy     { background: #fee2e2; color: #dc2626; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; }
-        .badge-manana  { background: #fef9c3; color: #ca8a04; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; }
-        .badge-vencido { background: #450a0a; color: #fca5a5; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; }
+        /* ── TABLAS Y RANKINGS ── */
+        .table thead th { 
+            background: var(--primary);
+            color: #ffffff; 
+            font-size: 13px; 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: none;
+        }
+        .table td { 
+            font-size: 14px; vertical-align: middle; 
+            font-weight: 500;
+        }
 
-        table thead th { background: #2c3e50; color: white; font-size: 13px; }
-        table td       { font-size: 13px; vertical-align: middle; }
+        .badge-hoy { background: #fee2e2; color: #dc2626; padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; text-transform: uppercase;}
+        .badge-manana { background: #fef9c3; color: #ca8a04; padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; text-transform: uppercase;}
 
-        /* TOP ranking */
         .rank-item {
-            display: flex; align-items: center; gap: 12px;
-            padding: 10px 0; border-bottom: 1px solid #f3f4f6;
+            display: flex; align-items: center; gap: 15px;
+            padding: 12px 0; border-bottom: 1px solid var(--bg-light);
         }
         .rank-item:last-child { border-bottom: none; }
         .rank-num {
-            width: 30px; height: 30px; border-radius: 50%;
+            width: 35px; height: 35px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-weight: bold; font-size: 13px; flex-shrink: 0;
+            font-size: 14px; font-weight: 800; flex-shrink: 0;
+            background: var(--bg-light); color: var(--text-muted);
         }
         .rank-1 { background: #fef9c3; color: #b45309; }
-        .rank-2 { background: #f3f4f6; color: #6b7280; }
-        .rank-3 { background: #fef3c7; color: #92400e; }
+        .rank-2 { background: #f1f5f9; color: #475569; }
+        .rank-3 { background: #ffedd5; color: #c2410c; }
+        
         .rank-info { flex: 1; }
-        .rank-info strong { font-size: 13px; display: block; color: #2c3e50; }
-        .rank-info small  { color: #888; font-size: 12px; }
-        .rank-value { font-weight: bold; font-size: 14px; color: #16a34a; }
-
-
-
-
+        .rank-info strong { font-size: 15px; display: block; color: var(--text-dark); font-weight: 700;}
+        .rank-info small  { color: var(--text-muted); font-size: 13px; }
+        .rank-value { font-size: 18px; font-weight: 800; color: #10b981; }
     </style>
 </head>
 <body>
@@ -161,7 +223,6 @@
         int totalClientes = 0, totalVehiculos = 0, alquileresActivos = 0, alquileresHoy = 0;
         int vehiculosDisponibles = 0, metaSemanal = 25, alquileresSemana = 0;
         double ingresosHoy = 0, ingresosSemana = 0, ingresosMes = 0;
-
         String[] diasLabels   = new String[7];
         int[]    diasAlq      = new int[7];
         double[] diasIngresos = new double[7];
@@ -172,7 +233,6 @@
 
         boolean dbOk = false;
         Connection conn = null;
-
         try {
             conn   = Conexion.conectar();
             dbOk   = (conn != null && !conn.isClosed());
@@ -286,8 +346,6 @@
                 proxDevoluciones.add(f);
             }
 
-
-
             // Top 3 vehículos del mes
             PreparedStatement psTopV = conn.prepareStatement(
                 "SELECT TOP 3 v.marca+' '+v.modelo AS vehiculo, v.placa, " +
@@ -342,36 +400,29 @@
             if (i < 6) { labelsJs.append(","); alqJs.append(","); ingresosJs.append(","); }
         }
         labelsJs.append("]"); alqJs.append("]"); ingresosJs.append("]");
-
-        int pctFlota = totalVehiculos > 0
-            ? (int)(((totalVehiculos - vehiculosDisponibles)*100.0)/totalVehiculos) : 0;
+        int pctFlota = totalVehiculos > 0 ? (int)(((totalVehiculos - vehiculosDisponibles)*100.0)/totalVehiculos) : 0;
         int pctMeta  = Math.min((int)((alquileresSemana*100.0)/metaSemanal), 100);
     %>
 
-    <!-- HERO -->
     <div class="hero">
-        <div class="hero-cars">🚗</div>
         <div class="container-fluid hero-inner">
-            <h2>👋 Bienvenido, <%= nombre %></h2>
+            <h2>👋 Hola, <span><%= nombre %></span></h2>
             <div class="hero-sub">
-                <span class="hero-badge">
-                    📅 <%= new SimpleDateFormat("EEEE, dd 'de' MMMM 'de' yyyy", new Locale("es","SV")).format(new Date()) %>
-                </span>
-                <span class="sep">·</span>
-                <span class="hero-badge">📊 Panel de Control</span>
+                <span class="hero-badge">📅 <%= new SimpleDateFormat("EEEE, dd 'de' MMMM 'de' yyyy", new Locale("es","SV")).format(new Date()) %></span>
+                <span class="sep">|</span>
+                <span>Panel de Control de Rentas</span>
             </div>
         </div>
     </div>
 
     <div class="container-fluid px-4">
 
-        <!-- ── FILA 1: 6 KPI ──────────────────────────────────────────── -->
         <div class="row mb-4">
             <div class="col-md-2 col-sm-6 mb-3">
                 <div class="card-metrica">
                     <div class="metrica-icono bg-azul">👥</div>
                     <div class="metrica-info">
-                        <h3 class="txt-azul"><%= totalClientes %></h3>
+                        <h3 class="text-primary"><%= totalClientes %></h3>
                         <p>Clientes</p>
                     </div>
                 </div>
@@ -380,8 +431,8 @@
                 <div class="card-metrica">
                     <div class="metrica-icono bg-verde">🚘</div>
                     <div class="metrica-info">
-                        <h3 class="txt-verde"><%= vehiculosDisponibles %></h3>
-                        <p>Vehículos Disp.</p>
+                        <h3 class="text-success"><%= vehiculosDisponibles %></h3>
+                        <p>Autos Disp.</p>
                     </div>
                 </div>
             </div>
@@ -389,16 +440,16 @@
                 <div class="card-metrica">
                     <div class="metrica-icono bg-naranja">🔑</div>
                     <div class="metrica-info">
-                        <h3 class="txt-naranja"><%= alquileresActivos %></h3>
-                        <p>Activos</p>
+                        <h3 class="text-warning"><%= alquileresActivos %></h3>
+                        <p>En Ruta</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-2 col-sm-6 mb-3">
                 <div class="card-metrica">
-                    <div class="metrica-icono bg-rojo">📅</div>
+                    <div class="metrica-icono bg-rojo">📝</div>
                     <div class="metrica-info">
-                        <h3 class="txt-rojo"><%= alquileresHoy %></h3>
+                        <h3 class="text-danger"><%= alquileresHoy %></h3>
                         <p>Tickets Hoy</p>
                     </div>
                 </div>
@@ -407,43 +458,42 @@
                 <div class="card-metrica">
                     <div class="metrica-icono bg-morado">💵</div>
                     <div class="metrica-info">
-                        <h3 class="txt-morado" style="font-size:22px;">$<%= String.format("%,.0f", ingresosHoy) %></h3>
+                        <h3 class="text-purple" style="font-size:24px; color: #7c3aed;">$<%= String.format("%,.0f", ingresosHoy) %></h3>
                         <p>Ingresos Hoy</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-2 col-sm-6 mb-3">
                 <div class="card-metrica">
-                    <div class="metrica-icono bg-cyan">📈</div>
+                    <div class="metrica-icono bg-cyan">💎</div>
                     <div class="metrica-info">
-                        <h3 class="txt-cyan" style="font-size:22px;">$<%= String.format("%,.0f", ingresosMes) %></h3>
-                        <p>Ingresos del Mes</p>
+                        <h3 class="text-info" style="font-size:24px;">$<%= String.format("%,.0f", ingresosMes) %></h3>
+                        <p>Corte del Mes</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- ── FILA 2: FLOTA + META + GRÁFICA DOBLE ───────────────────── -->
         <div class="row mb-4">
             <div class="col-md-2 mb-3">
                 <div class="panel-card">
-                    <div class="panel-titulo">🚗 Flota</div>
+                    <div class="panel-titulo">Estado de Flota</div>
                     <div class="flota-label">
-                        <span>Ocupados</span><span><%= totalVehiculos - vehiculosDisponibles %></span>
+                        <span>Ocupados</span><span class="text-danger"><%= totalVehiculos - vehiculosDisponibles %></span>
                     </div>
                     <div class="progress mb-3">
                         <div class="progress-bar bg-danger" style="width:<%= pctFlota %>%"><%= pctFlota %>%</div>
                     </div>
                     <div class="flota-label">
-                        <span>Disponibles</span><span><%= vehiculosDisponibles %></span>
+                        <span>Disponibles</span><span class="text-success"><%= vehiculosDisponibles %></span>
                     </div>
                     <div class="progress">
                         <div class="progress-bar bg-success" style="width:<%= 100-pctFlota %>%"><%= 100-pctFlota %>%</div>
                     </div>
-                    <hr class="my-3">
+                    <hr class="my-4">
                     <div class="text-center">
-                        <small class="text-muted">Ingresos semana</small>
-                        <div style="font-size:18px; font-weight:bold; color:#7c3aed;">
+                        <small class="text-muted" style="font-weight: 700; text-transform: uppercase;">Ingresos de la Semana</small>
+                        <div style="font-size:24px; font-weight:800; color:var(--accent); margin-top: 5px;">
                             $<%= String.format("%,.2f", ingresosSemana) %>
                         </div>
                     </div>
@@ -452,53 +502,52 @@
 
             <div class="col-md-2 mb-3">
                 <div class="panel-card text-center">
-                    <div class="panel-titulo text-center">🎯 Meta Semanal</div>
+                    <div class="panel-titulo text-center">Meta Semanal</div>
                     <div class="meta-numero">
                         <span><%= alquileresSemana %></span>
                         <small>/ <%= metaSemanal %></small>
                     </div>
-                    <div class="meta-label">tickets esta semana</div>
-                    <div class="progress" style="height:22px;">
-                        <div class="progress-bar <%= pctMeta>=100?"bg-success":pctMeta>=60?"bg-warning":"bg-danger" %>"
-                             style="width:<%= pctMeta %>%; font-size:13px; font-weight:bold;">
+                    <div class="meta-label">TICKETS ESTA SEMANA</div>
+                    <div class="progress mb-3">
+                        <div class="progress-bar <%= pctMeta>=100?"bg-success":"bg-primary" %>"
+                             style="width:<%= pctMeta %>%;">
                             <%= pctMeta %>%
                         </div>
                     </div>
-                    <small class="text-muted mt-2 d-block">
-                        <% if (pctMeta >= 100) { %>🎉 ¡Meta alcanzada!
-                        <% } else { %><%= metaSemanal - alquileresSemana %> para la meta<% } %>
+                    <small class="text-muted mt-3 d-block font-weight-bold">
+                        <% if (pctMeta >= 100) { %><span class="text-success">🎉 ¡META ALCANZADA!</span>
+                        <% } else { %><%= metaSemanal - alquileresSemana %> rentas para la meta<% } %>
                     </small>
-
                 </div>
             </div>
 
             <div class="col-md-8 mb-3">
                 <div class="panel-card">
-                    <div class="panel-titulo">📊 Últimos 7 Días — Alquileres e Ingresos</div>
-                    <canvas id="graficaDoble" height="110"></canvas>
+                    <div class="panel-titulo">Rendimiento (Últimos 7 Días)</div>
+                    <div class="chart-container">
+                        <canvas id="graficaDoble"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- ── FILA 3: TOP VEHÍCULOS + TOP CLIENTES + ALERTAS VENCIDOS ── -->
         <div class="row mb-4">
-
-            <!-- Top vehículos -->
             <div class="col-md-6 mb-3">
                 <div class="panel-card">
                     <div class="panel-titulo">🏆 Top Vehículos del Mes</div>
                     <% if (topVehiculos.isEmpty()) { %>
-                        <p class="text-muted text-center mt-3" style="font-size:13px;">Sin datos este mes</p>
+                        <p class="text-muted text-center mt-3" style="font-size:14px;">Sin datos este mes</p>
                     <% } else {
-                           String[] medals = {"🥇","🥈","🥉"};
                            String[] rankCls = {"rank-1","rank-2","rank-3"};
+                           String[] medals = {"1","2","3"};
                            for (int i = 0; i < topVehiculos.size(); i++) {
-                               Map<String,Object> v = topVehiculos.get(i); %>
+                               Map<String,Object> v = topVehiculos.get(i);
+                    %>
                     <div class="rank-item">
                         <div class="rank-num <%= rankCls[i] %>"><%= medals[i] %></div>
                         <div class="rank-info">
                             <strong><%= v.get("nombre") %></strong>
-                            <small><%= v.get("placa") %> · <%= v.get("alquileres") %> alquiler(es)</small>
+                            <small><%= v.get("placa") %> &nbsp;|&nbsp; <%= v.get("alquileres") %> alquiler(es)</small>
                         </div>
                         <div class="rank-value">$<%= String.format("%,.0f", v.get("ingresos")) %></div>
                     </div>
@@ -506,17 +555,17 @@
                 </div>
             </div>
 
-            <!-- Top clientes -->
             <div class="col-md-6 mb-3">
                 <div class="panel-card">
-                    <div class="panel-titulo">⭐ Top Clientes del Mes</div>
+                    <div class="panel-titulo">⭐ Clientes VIP del Mes</div>
                     <% if (topClientes.isEmpty()) { %>
-                        <p class="text-muted text-center mt-3" style="font-size:13px;">Sin datos este mes</p>
+                        <p class="text-muted text-center mt-3" style="font-size:14px;">Sin datos este mes</p>
                     <% } else {
-                           String[] medals2 = {"🥇","🥈","🥉"};
                            String[] rankCls2 = {"rank-1","rank-2","rank-3"};
+                           String[] medals2 = {"1","2","3"};
                            for (int i = 0; i < topClientes.size(); i++) {
-                               Map<String,Object> c = topClientes.get(i); %>
+                               Map<String,Object> c = topClientes.get(i);
+                    %>
                     <div class="rank-item">
                         <div class="rank-num <%= rankCls2[i] %>"><%= medals2[i] %></div>
                         <div class="rank-info">
@@ -528,37 +577,38 @@
                     <% } } %>
                 </div>
             </div>
-
-
         </div>
 
-        <!-- ── FILA 4: PRÓXIMAS DEVOLUCIONES ──────────────────────────── -->
         <div class="panel-card mb-4">
             <div class="panel-titulo">⏰ Próximas Devoluciones (Hoy y Mañana)</div>
             <% if (proxDevoluciones.isEmpty()) { %>
-                <p class="text-muted text-center mt-3">✅ No hay devoluciones pendientes para hoy ni mañana.</p>
+                <p class="text-muted text-center mt-4 mb-4" style="font-size: 15px;">✅ No hay devoluciones pendientes a corto plazo.</p>
             <% } else { %>
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
                     <thead>
                         <tr>
-                            <th>Ticket #</th><th>Cliente</th><th>Vehículo</th>
-                            <th>Placa</th><th>Fecha Devolución</th><th>Alerta</th>
+                            <th>TICKET</th>
+                            <th>CLIENTE</th>
+                            <th>VEHÍCULO</th>
+                            <th>PLACA</th>
+                            <th>RETORNO ESPERADO</th>
+                            <th>ESTADO</th>
                         </tr>
                     </thead>
                     <tbody>
                         <% for (Map<String,Object> f : proxDevoluciones) { %>
                         <tr>
-                            <td><strong>#<%= f.get("id") %></strong></td>
+                            <td class="font-weight-bold text-primary">#<%= f.get("id") %></td>
                             <td><%= f.get("cliente") %></td>
                             <td><%= f.get("vehiculo") %></td>
-                            <td><span class="badge badge-success"><%= f.get("placa") %></span></td>
+                            <td style="font-family:monospace; color:var(--text-muted);"><%= f.get("placa") %></td>
                             <td><%= f.get("fecha") %></td>
                             <td>
                                 <% if ((Boolean)f.get("esHoy")) { %>
-                                    <span class="badge-hoy">🔴 Vence Hoy</span>
+                                    <span class="badge-hoy">Vence Hoy</span>
                                 <% } else { %>
-                                    <span class="badge-manana">🟡 Vence Mañana</span>
+                                    <span class="badge-manana">Vence Mañana</span>
                                 <% } %>
                             </td>
                         </tr>
@@ -569,12 +619,16 @@
             <% } %>
         </div>
 
-    </div><!-- /container -->
+    </div>
 
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Adaptación de Chart.js al concepto Claro / Corporativo
         var ctx = document.getElementById('graficaDoble').getContext('2d');
+        Chart.defaults.global.defaultFontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+        Chart.defaults.global.defaultFontColor = '#6c757d';
+        
         new Chart(ctx, {
             type: 'bar',
             data: {
@@ -583,22 +637,27 @@
                     {
                         label: 'Alquileres',
                         data: <%= alqJs %>,
-                        backgroundColor: 'rgba(37,99,235,0.7)',
-                        borderColor: 'rgba(37,99,235,1)',
-                        borderWidth: 2,
+                        backgroundColor: 'rgba(59, 130, 246, 0.85)',
+                        borderColor: '#2563eb',
+                        borderWidth: 1,
                         yAxisID: 'y-alq',
-                        order: 2
+                        order: 2,
+                        barPercentage: 0.5,
+                        borderRadius: 4
                     },
                     {
                         label: 'Ingresos ($)',
                         data: <%= ingresosJs %>,
                         type: 'line',
-                        fill: false,
-                        borderColor: 'rgba(22,163,74,1)',
-                        backgroundColor: 'rgba(22,163,74,0.1)',
-                        borderWidth: 2,
-                        pointBackgroundColor: 'rgba(22,163,74,1)',
+                        fill: true,
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderColor: '#10b981',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#10b981',
+                        pointBorderWidth: 2,
                         pointRadius: 4,
+                        pointHoverRadius: 6,
                         yAxisID: 'y-ing',
                         order: 1
                     }
@@ -606,30 +665,52 @@
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 scales: {
+                    xAxes: [{
+                        gridLines: { display: false }
+                    }],
                     yAxes: [
                         {
                             id: 'y-alq', position: 'left',
-                            ticks: { beginAtZero: true, stepSize: 1, fontColor: '#2563eb' },
-                            gridLines: { drawOnChartArea: true }
+                            ticks: { beginAtZero: true, stepSize: 1, fontColor: '#3b82f6' },
+                            gridLines: { drawOnChartArea: true, color: 'rgba(0,0,0,0.05)', zeroLineColor: 'rgba(0,0,0,0.1)' }
                         },
                         {
                             id: 'y-ing', position: 'right',
-                            ticks: { beginAtZero: true, fontColor: '#16a34a',
+                            ticks: { beginAtZero: true, fontColor: '#10b981',
                                      callback: function(v){ return '$'+v.toLocaleString(); } },
                             gridLines: { drawOnChartArea: false }
                         }
                     ]
                 },
-                legend: { position: 'top' },
+                legend: { 
+                    position: 'top',
+                    labels: { boxWidth: 12, fontColor: '#2c3e50', fontSize: 13, fontStyle: 'bold' }
+                },
                 tooltips: {
+                    backgroundColor: '#ffffff',
+                    titleFontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+                    titleFontSize: 14,
+                    titleFontColor: '#2c3e50',
+                    bodyFontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+                    bodyFontSize: 13,
+                    bodyFontColor: '#6c757d',
+                    borderColor: '#e2e8f0',
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    displayColors: true,
                     callbacks: {
+                        labelColor: function(tooltipItem, chart) {
+                            var color = tooltipItem.datasetIndex === 0 ? '#3b82f6' : '#10b981';
+                            return { borderColor: color, backgroundColor: color };
+                        },
                         label: function(item, data) {
                             var label = data.datasets[item.datasetIndex].label;
                             var val   = item.yLabel;
                             return label === 'Ingresos ($)'
-                                ? label + ': $' + val.toLocaleString()
-                                : label + ': ' + val;
+                                ? ' Ingresos: $' + val.toLocaleString()
+                                : ' ' + label + ': ' + val;
                         }
                     }
                 }

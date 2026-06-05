@@ -12,101 +12,138 @@ import javax.servlet.http.HttpServletResponse;
 
 public class VehiculoServlet extends HttpServlet {
 
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+    // ── GET: solo para acciones simples sin formulario (eliminar, reactivar, etc.)
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        response.setContentType("text/html;charset=UTF-8");
         request.setCharacterEncoding("UTF-8");
+        response.setContentType("text/html;charset=UTF-8");
 
         String accion = request.getParameter("accion");
         VehiculoDAO dao = new VehiculoDAO();
 
-        // 1. ELIMINAR (Desactivación lógica)
         if ("eliminar".equals(accion)) {
             try {
                 String idParam = request.getParameter("id");
-                if (idParam != null) {
-                    int id = Integer.parseInt(idParam);
-                    if (dao.eliminarVehiculoLogico(id)) {
-                        response.sendRedirect("vehiculos.jsp?msg=" + URLEncoder.encode("Vehículo desactivado correctamente", StandardCharsets.UTF_8.toString()));
-                    } else {
-                        response.sendRedirect("vehiculos.jsp?error=" + URLEncoder.encode("No se pudo desactivar el vehículo", StandardCharsets.UTF_8.toString()));
-                    }
+                if (idParam == null || idParam.trim().isEmpty()) {
+                    redirigirError(response, "ID no proporcionado");
+                    return;
+                }
+                int id = Integer.parseInt(idParam.trim());
+                if (dao.eliminarVehiculoLogico(id)) {
+                    redirigirExito(response, "Vehículo desactivado correctamente");
+                } else {
+                    redirigirError(response, "No se pudo desactivar el vehículo");
                 }
             } catch (NumberFormatException e) {
-                response.sendRedirect("vehiculos.jsp?error=" + URLEncoder.encode("ID inválido", StandardCharsets.UTF_8.toString()));
+                redirigirError(response, "ID inválido");
             }
-            return;
+        } else {
+            // GET sin acción reconocida → redirigir a la lista
+            response.sendRedirect("vehiculos.jsp");
         }
+    }
 
-        // 2. GUARDAR / ACTUALIZAR
+    // ── POST: solo para guardar / actualizar desde el formulario modal
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        request.setCharacterEncoding("UTF-8");
+        response.setContentType("text/html;charset=UTF-8");
+
+        VehiculoDAO dao = new VehiculoDAO();
+
         try {
-            String idStr = request.getParameter("txtId");
-            String marca = request.getParameter("txtMarca");
-            String placa = request.getParameter("txtPlaca");
+            String idStr    = request.getParameter("txtId");
+            String marca    = request.getParameter("txtMarca");
+            String placa    = request.getParameter("txtPlaca");
+            String modelo   = request.getParameter("txtModelo");
+            String color    = request.getParameter("txtColor");
+            String capStr   = request.getParameter("txtCapacidad");
+            String anioStr  = request.getParameter("txtAnio");
+            String precioRaw = request.getParameter("txtPrecio");
 
-            if (marca == null || marca.trim().isEmpty() || placa == null || placa.trim().isEmpty()) {
-                response.sendRedirect("vehiculos.jsp?error=" + URLEncoder.encode("Debe completar los campos obligatorios", StandardCharsets.UTF_8.toString()));
+            // Validación básica de campos obligatorios
+            if (esVacio(marca) || esVacio(placa) || esVacio(modelo)
+                    || esVacio(color) || esVacio(capStr) || esVacio(anioStr) || esVacio(precioRaw)) {
+                redirigirError(response, "Debe completar todos los campos obligatorios");
                 return;
             }
 
+            // Limpieza del precio (acepta coma o punto decimal)
+            String precioLimpio = precioRaw.trim().replace(",", ".").replaceAll("[^0-9.]", "");
+            if (precioLimpio.isEmpty()) {
+                redirigirError(response, "Formato de precio inválido");
+                return;
+            }
+
+            // Construir el objeto Vehiculo
             Vehiculo v = new Vehiculo();
             v.setMarca(marca.trim());
-            v.setModelo(request.getParameter("txtModelo").trim());
+            v.setModelo(modelo.trim());
             v.setPlaca(placa.trim());
-            v.setCapacidad(Integer.parseInt(request.getParameter("txtCapacidad")));
-            v.setAnio(Integer.parseInt(request.getParameter("txtAnio")));
-            v.setColor(request.getParameter("txtColor").trim());
-
-            // Limpieza robusta del precio
-            String precioRaw = request.getParameter("txtPrecio").trim().replace(",", ".");
-            String precioLimpio = precioRaw.replaceAll("[^0-9.]", "");
-            if (precioLimpio.isEmpty()) {
-                throw new NumberFormatException();
-            }
+            v.setColor(color.trim());
+            v.setCapacidad(Integer.parseInt(capStr.trim()));
+            v.setAnio(Integer.parseInt(anioStr.trim()));
             v.setPrecioDiario(Double.parseDouble(precioLimpio));
-
             v.setDisponible(true);
 
-            if (idStr == null || idStr.trim().isEmpty()) {
-                // LÓGICA DE REGISTRO / REACTIVACIÓN
-                int resultado = dao.registrarVehiculo(v);
+            boolean esActualizacion = (idStr != null && !idStr.trim().isEmpty());
 
-                if (resultado == 1) {
-                    response.sendRedirect("vehiculos.jsp?msg=" + URLEncoder.encode("Vehículo registrado exitosamente", StandardCharsets.UTF_8.toString()));
-                } else if (resultado == 2) {
-                    // Mensaje personalizado para reactivación (igual que en Clientes)
-                    response.sendRedirect("vehiculos.jsp?msg=" + URLEncoder.encode("El vehículo ya existía y ha sido reactivado correctamente", StandardCharsets.UTF_8.toString()));
-                } else {
-                    response.sendRedirect("vehiculos.jsp?error=" + URLEncoder.encode("Error: Ya existe un vehículo activo con esta placa", StandardCharsets.UTF_8.toString()));
+            if (!esActualizacion) {
+                // ── REGISTRAR / REACTIVAR
+                int resultado = dao.registrarVehiculo(v);
+                switch (resultado) {
+                    case 1:
+                        redirigirExito(response, "Vehículo registrado exitosamente");
+                        break;
+                    case 2:
+                        redirigirExito(response, "El vehículo ya existía y ha sido reactivado correctamente");
+                        break;
+                    default:
+                        redirigirError(response, "Ya existe un vehículo activo con esta placa");
                 }
             } else {
-                // LÓGICA DE ACTUALIZACIÓN
-                v.setIdVehiculo(Integer.parseInt(idStr.trim()));
-                Vehiculo existente = dao.buscarPorPlaca(v.getPlaca());
+                // ── ACTUALIZAR
+                int id = Integer.parseInt(idStr.trim());
+                v.setIdVehiculo(id);
 
-                if (existente != null && existente.getIdVehiculo() != v.getIdVehiculo() && existente.isActivo()) {
-                    response.sendRedirect("vehiculos.jsp?error=" + URLEncoder.encode("La placa ya está asignada a otro vehículo", StandardCharsets.UTF_8.toString()));
-                } else if (dao.actualizarVehiculo(v)) {
-                    response.sendRedirect("vehiculos.jsp?msg=" + URLEncoder.encode("Vehículo actualizado correctamente", StandardCharsets.UTF_8.toString()));
+                // Verificar placa duplicada (lógica de negocio que quedaba suelta en el Servlet original)
+                Vehiculo existente = dao.buscarPorPlaca(v.getPlaca());
+                if (existente != null && existente.getIdVehiculo() != id && existente.isActivo()) {
+                    redirigirError(response, "La placa ya está asignada a otro vehículo activo");
+                    return;
+                }
+
+                if (dao.actualizarVehiculo(v)) {
+                    redirigirExito(response, "Vehículo actualizado correctamente");
                 } else {
-                    response.sendRedirect("vehiculos.jsp?error=" + URLEncoder.encode("Error al actualizar el vehículo", StandardCharsets.UTF_8.toString()));
+                    redirigirError(response, "Error al actualizar el vehículo");
                 }
             }
+
         } catch (NumberFormatException e) {
-            response.sendRedirect("vehiculos.jsp?error=" + URLEncoder.encode("Formato de datos inválido (verifique números)", StandardCharsets.UTF_8.toString()));
+            redirigirError(response, "Formato de datos inválido (verifique números)");
         } catch (Exception e) {
-            response.sendRedirect("vehiculos.jsp?error=" + URLEncoder.encode("Error inesperado en el servidor", StandardCharsets.UTF_8.toString()));
+            redirigirError(response, "Error inesperado en el servidor");
         }
     }
 
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        processRequest(request, response);
+    // ── Helpers para no repetir URLEncoder en cada línea ──────────────────────
+
+    private void redirigirExito(HttpServletResponse response, String mensaje) throws IOException {
+        response.sendRedirect("vehiculos.jsp?msg=" +
+                URLEncoder.encode(mensaje, StandardCharsets.UTF_8.toString()));
     }
 
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        processRequest(request, response);
+    private void redirigirError(HttpServletResponse response, String mensaje) throws IOException {
+        response.sendRedirect("vehiculos.jsp?error=" +
+                URLEncoder.encode(mensaje, StandardCharsets.UTF_8.toString()));
+    }
+
+    private boolean esVacio(String valor) {
+        return valor == null || valor.trim().isEmpty();
     }
 }
